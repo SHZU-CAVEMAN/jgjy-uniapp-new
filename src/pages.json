@@ -1,0 +1,37 @@
+{
+	"pages": [
+		{ "path": "pages/index/index", "style": { "navigationBarTitleText": "泸州白酒投 · 酒谷酒业" } },
+		{ "path": "pages/products/index", "style": { "navigationBarTitleText": "产品与储酒", "onReachBottomDistance": 120 } },
+		{ "path": "pages/trace/index", "style": { "navigationBarTitleText": "酒体溯源" } },
+		{ "path": "pages/mine/index", "style": { "navigationBarTitleText": "我的" } },
+		{ "path": "pages/favorites/index", "style": { "navigationBarTitleText": "我的收藏" } },
+		{ "path": "pages/my-comments/index", "style": { "navigationBarTitleText": "我的留言" } },
+		{ "path": "pages/my-consults/index", "style": { "navigationBarTitleText": "我的咨询" } },
+		{ "path": "pages/news/index", "style": { "navigationBarTitleText": "企业动态", "enablePullDownRefresh": true } },
+		{ "path": "pages/article-detail/index", "style": { "navigationBarTitleText": "文章详情" } },
+		{ "path": "pages/video-player/index", "style": { "navigationBarTitleText": "视频播放", "navigationBarTextStyle": "white", "navigationBarBackgroundColor": "#000000", "backgroundColor": "#000000" } },
+		{ "path": "pages/product-detail/index", "style": { "navigationBarTitleText": "产品详情" } },
+		{ "path": "pages/storage-detail/index", "style": { "navigationBarTitleText": "储酒详情" } },
+		{ "path": "pages/trace-report/index", "style": { "navigationBarTitleText": "溯源报告" } },
+		{ "path": "pages/consult/index", "style": { "navigationBarTitleText": "发起咨询" } },
+		{ "path": "pages/about/index", "style": { "navigationBarTitleText": "关于我们" } }
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "泸州白酒投集团 · 酒谷酒业",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F4F6F8"
+	},
+	"tabBar": {
+		"color": "#7B8794",
+		"selectedColor": "#087EAA",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{ "pagePath": "pages/index/index", "text": "首页" },
+			{ "pagePath": "pages/products/index", "text": "产品" },
+			{ "pagePath": "pages/trace/index", "text": "溯源" },
+			{ "pagePath": "pages/mine/index", "text": "我的" }
+		]
+	}
+}

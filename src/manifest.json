@@ -1,0 +1,22 @@
+{
+    "name": "泸州白酒投 · 酒谷酒业",
+    "appid": "wx9df0768aa77acea1",
+    "description": "酒谷酒业企业服务小程序",
+    "versionName": "1.0.0",
+    "versionCode": "100",
+    "transformPx": false,
+    "mp-weixin": {
+        "appid": "wx9df0768aa77acea1",
+        "usingComponents": true,
+        "lazyCodeLoading": "requiredComponents",
+        "setting": {
+            "urlCheck": true,
+            "es6": true,
+            "minified": true
+        }
+    },
+    "uniStatistics": {
+        "enable": false
+    },
+    "vueVersion": "3"
+}
