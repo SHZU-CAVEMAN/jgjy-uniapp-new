@@ -20,15 +20,20 @@
 <script setup>
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { news } from '../../data/catalog'
+import { getNews } from '../../api/news'
 
 const comments = ref([])
 
-function refreshComments() {
-  comments.value = news.flatMap((article) => {
+async function refreshComments() {
+  try {
+    const data = await getNews({ page: 1, pageSize: 100 })
+    comments.value = data.items.flatMap((article) => {
     const records = uni.getStorageSync(`article-comments-${article.id}`) || []
     return records.map((comment) => ({ ...comment, articleId: article.id, articleTitle: article.title }))
-  }).sort((left, right) => right.id - left.id)
+    }).sort((left, right) => right.id - left.id)
+  } catch {
+    comments.value = []
+  }
 }
 function openArticle(articleId) { uni.navigateTo({ url: `/pages/article-detail/index?id=${articleId}` }) }
 function goNews() { uni.navigateTo({ url: '/pages/news/index' }) }

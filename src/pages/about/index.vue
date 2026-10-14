@@ -5,16 +5,11 @@
       <image :class="['hero-image', { loaded: heroLoaded }]" :src="heroImage" mode="aspectFill"
         @load="heroLoaded = true" @error="handleHeroError" />
       <view class="mask" />
-      <view class="hero-copy"><text>白酒投集团 · 酒谷酒业</text><text>泸州产区原酒全产业链综合服务商</text></view>
+      <view class="hero-copy"><text>{{ company.name || '酒谷酒业' }}</text><text>{{ company.scale || '泸州产区原酒全产业链综合服务商' }}</text></view>
     </view>
-    <view class="intro"><text class="company">泸州白酒产业发展投资集团酒谷酒业有限公司</text>
+    <view class="intro"><text class="company">{{ company.name || '酒谷酒业' }}</text>
       <view class="intro-body">
-        <text class="paragraph">
-        按照四川省委、省政府赋予泸州建设世界级优质白酒产业集群的战略部署，以及泸州市委、市政府关于“深入实施产业建圈强链行动，持续增强产业核心竞争力”的决策要求，充分依托泸州原酒产区资源禀赋和品质基础。2025年1月9日，在白酒投集团的高度重视下，“泸州白酒产业发展投资集团酒谷酒业有限公司”注册成立，于2025年3月25日更名为“泸州白酒产业发展投资集团酒谷酒业有限公司”。
-        </text>
-        <text class="paragraph">
-        主营业务：根植于“泸州产区”这一世界级白酒原产地，专注于原酒这一产业根基，超越传统原酒买卖模式，向产业链上下游延伸，致力于打造中国泸州优质产区原酒品牌，聚焦于原酒全产业链综合服务商。
-        </text>
+        <text class="paragraph">{{ company.description || '企业资料正在加载。' }}</text>
       </view>
     </view>
     <view class="strengths">
@@ -28,19 +23,20 @@
         @error="photos[index] = '/static/logo.png'" />
     </view>
     <view class="trace-copy"><text>从原料、酿造、存储到质检全程可查，每一罐原酒均配备独立溯源码，支持扫码验真。</text></view>
-    <view class="contact"><text>联系电话</text><text
-        selectable>0830-6660008</text><text>公司地址</text><text>四川省泸州市龙马潭区安宁街道安宁大道三段 20
-        号</text><text>营业时间</text><text>周一至周五 9:00-18:00</text></view>
+    <view class="contact"><text>联系电话</text><text selectable>{{ company.servicePhone || company.phone || '-' }}</text><text>公司地址</text><text>{{ company.address || '-' }}</text><text>电子邮箱</text><text>{{ company.email || '-' }}</text></view>
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import SectionTitle from '../../components/SectionTitle.vue'
+import { getCompany } from '../../api/home'
 
 const resourceBase = 'https://lzbjtjt.online/jgjy/resource'
 const heroImage = ref(`${resourceBase}/48dcc5dd10c3f4fe14af9ec847e4010d.jpg`)
 const heroLoaded = ref(false)
+const company = ref({})
 const photos = ref([
   `${resourceBase}/138d63084c6ff384217f7568b3b0d014.jpg`,
   `${resourceBase}/ac0412e9d010ac09059754425226451c.jpg`,
@@ -51,6 +47,14 @@ function handleHeroError() {
   heroLoaded.value = true
   heroImage.value = ''
 }
+
+onLoad(async () => {
+  try {
+    company.value = await getCompany()
+  } catch (error) {
+    uni.showToast({ title: error.message || '企业资料加载失败', icon: 'none' })
+  }
+})
 </script>
 
 <style scoped lang="scss">

@@ -15,11 +15,7 @@
         mode="aspectFit"
         @error="handleImageError"
       />
-      <view class="content"
-        ><text v-for="(paragraph, index) in article.content" :key="index">{{
-          paragraph
-        }}</text></view
-      >
+      <rich-text class="content" :nodes="article.content" />
       <text class="source">内容由酒谷酒业新闻中心发布</text>
     </article>
 
@@ -75,12 +71,12 @@
 <script setup>
 import { ref } from "vue";
 import { onLoad, onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app";
-import { getNews } from "../../data/catalog";
+import { getNewsArticle } from "../../api/news";
 
-const article = ref(getNews());
+const article = ref({ id: "", title: "", category: "", author: "", summary: "", content: "" });
 const liked = ref(false);
 const collected = ref(false);
-const likeCount = ref(article.value.likes);
+const likeCount = ref(0);
 const commentText = ref("");
 const comments = ref([]);
 
@@ -91,7 +87,7 @@ function loadInteractions() {
   liked.value = Boolean(uni.getStorageSync(storageKey("liked")));
   collected.value = Boolean(uni.getStorageSync(storageKey("collected")));
   comments.value = uni.getStorageSync(storageKey("comments")) || [];
-  likeCount.value = article.value.likes + (liked.value ? 1 : 0);
+  likeCount.value = liked.value ? 1 : 0;
 }
 function toggleLike() {
   liked.value = !liked.value;
@@ -132,14 +128,35 @@ function handleImageError() {
   article.value.image = "/static/logo.png";
 }
 
-onLoad(({ id }) => {
-  article.value = getNews(id);
-  uni.setNavigationBarTitle({ title: article.value.category });
-  loadInteractions();
+onLoad(async ({ id }) => {
+  try {
+    article.value = await getNewsArticle(id);
+    article.value.content = normalizeArticleContent(article.value.content);
+    uni.setNavigationBarTitle({ title: article.value.category });
+    loadInteractions();
+  } catch (error) {
+    uni.showModal({
+      title: "文章加载失败",
+      content: error.message || "请稍后重试",
+      showCancel: false,
+      success: () => uni.navigateBack(),
+    });
+  }
   // #ifdef MP-WEIXIN
   uni.showShareMenu({ menus: ["shareAppMessage", "shareTimeline"] });
   // #endif
 });
+
+function normalizeArticleContent(content) {
+  return String(content || "").replace(/<img\b[^>]*>/gi, (image) => {
+    const source = image.match(/\sdata-src=(['"])(.*?)\1/i)?.[2];
+    const normalized = image
+      .replace(/<img\b/i, '<img class="article-content-image"')
+      .replace(/\sdata-src=(['"])(.*?)\1/i, "")
+      .replace(/\ssrc=(['"])(.*?)\1/i, ` src="${source}"`);
+    return source ? normalized : image.replace(/<img\b/i, '<img class="article-content-image"');
+  });
+}
 
 onShareAppMessage(() => ({
   title: article.value.title,
@@ -204,7 +221,20 @@ onShareTimeline(() => ({
   border-radius: 8rpx;
   background: #e9f2f5;
 }
-.content text {
+:deep(.content) {
+  display: block;
+  margin-top: 30rpx;
+  color: $text-body;
+  font-size: 29rpx;
+  line-height: 1.95;
+  text-align: justify;
+}
+:deep(.content .article-content-image) {
+  max-width: 100%;
+  height: auto;
+}
+.content {
+  display: block;
   display: block;
   margin-top: 30rpx;
   color: $text-body;

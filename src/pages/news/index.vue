@@ -11,7 +11,9 @@
         ></view
       ></scroll-view
     >
-    <view class="news-list">
+    <view v-if="loading" class="empty">正在加载文章…</view>
+    <view v-else-if="!filteredNews.length" class="empty">暂无已发布文章</view>
+    <view v-else class="news-list">
       <view
         v-for="item in filteredNews"
         :key="item.id"
@@ -41,14 +43,16 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import { onPullDownRefresh, onUnload } from "@dcloudio/uni-app";
-import { news, newsCategories } from "../../data/catalog";
+import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app";
+import { getNews } from "../../api/news";
 import { parseCompatibleDate } from "../../utils/platform";
 
-const activeCategory = ref(newsCategories[0]);
-let refreshTimer = null;
+const newsItems = ref([]);
+const activeCategory = ref("");
+const loading = ref(false);
+const newsCategories = computed(() => [...new Set(newsItems.value.map((item) => item.category))]);
 const filteredNews = computed(() =>
-  news
+  newsItems.value
     .filter((item) => item.category === activeCategory.value)
     .sort(
       (left, right) =>
@@ -56,14 +60,29 @@ const filteredNews = computed(() =>
     )
 );
 
+async function loadNews() {
+  loading.value = true;
+  try {
+    const data = await getNews({ page: 1, pageSize: 100 });
+    newsItems.value = data.items;
+    if (!newsCategories.value.includes(activeCategory.value)) {
+      activeCategory.value = newsCategories.value[0] || "";
+    }
+  } catch (error) {
+    uni.showToast({ title: error.message || "文章加载失败", icon: "none" });
+  } finally {
+    loading.value = false;
+  }
+}
+
 function openNews(item) {
   uni.navigateTo({ url: `/pages/article-detail/index?id=${item.id}` });
 }
-onPullDownRefresh(() => {
-  clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => uni.stopPullDownRefresh(), 350);
+onLoad(loadNews);
+onPullDownRefresh(async () => {
+  await loadNews();
+  uni.stopPullDownRefresh();
 });
-onUnload(() => clearTimeout(refreshTimer));
 </script>
 
 <style scoped lang="scss">

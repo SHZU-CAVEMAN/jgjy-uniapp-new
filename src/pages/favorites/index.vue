@@ -62,8 +62,8 @@
 import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import ProductCard from "../../components/ProductCard.vue";
-import { news } from "../../data/catalog";
 import { getProducts } from "../../api/products";
+import { getNews } from "../../api/news";
 
 const activeTab = ref("products");
 const favoriteProducts = ref([]);
@@ -78,9 +78,14 @@ async function refreshFavorites() {
   } catch {
     favoriteProducts.value = [];
   }
-  favoriteArticles.value = news.filter((article) =>
-    uni.getStorageSync(`article-collected-${article.id}`)
-  );
+  try {
+    const data = await getNews({ page: 1, pageSize: 100 });
+    favoriteArticles.value = data.items.filter((article) =>
+      uni.getStorageSync(`article-collected-${article.id}`)
+    );
+  } catch {
+    favoriteArticles.value = [];
+  }
 }
 function openProduct(product) {
   uni.navigateTo({ url: `/pages/product-detail/index?id=${product.id}` });

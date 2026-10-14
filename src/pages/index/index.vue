@@ -1,7 +1,7 @@
 <template>
   <view class="page-shell">
     <view class="hero-wrap">
-      <swiper class="hero" circular :autoplay="bannerAutoplay" :interval="4000" @change="handleBannerChange">
+      <swiper v-if="banners.length" class="hero" circular :autoplay="bannerAutoplay" :interval="4000" @change="handleBannerChange">
         <swiper-item v-for="(banner, index) in banners" :key="banner.image || banner.video" @tap="openBanner(banner)">
           <video v-if="banner.type === 'video' && !banner.videoError" id="home-banner-video" class="hero-image"
             :src="banner.video" :poster="banner.poster" :autoplay="currentBanner === index && bannerAutoplay" loop
@@ -13,6 +13,7 @@
           <view v-if="banner.type === 'video' && !banner.videoError" class="play-mark">▶</view>
         </swiper-item>
       </swiper>
+      <view v-else class="hero" />
       <button class="news-entry" @tap.stop="goNews">查看动态 ›</button>
       <view class="hero-dots">
         <view v-for="(_, index) in banners" :key="index" class="hero-dot" :class="{ active: currentBanner === index }" />
@@ -21,9 +22,9 @@
 
     <view class="storage-card" @tap="goProducts('storage')">
       <view class="storage-head"><text>总库存</text><text class="storage-link">查看全部 ›</text></view>
-      <view class="storage-total"><text class="storage-number">11,440</text><text> 吨</text></view>
-      <text class="storage-caption">76 个酒体品种</text>
-      <view class="storage-trace"><text>陶坛 B-12 · 十年窖香调味酒</text><text>可溯源 ›</text></view>
+      <view class="storage-total"><text class="storage-number">{{ homeSummary.totalTons }}</text><text> 吨</text></view>
+      <text class="storage-caption">{{ homeSummary.productCount }} 个上架产品</text>
+      <view class="storage-trace"><text>{{ featuredProduct ? `${featuredProduct.tank || '储酒罐'} · ${featuredProduct.name}` : '暂无上架产品' }}</text><text>可溯源 ›</text></view>
     </view>
 
     <section-title title="主营业务" subtitle="原酒全产业链服务" />
@@ -46,19 +47,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { onHide, onShow } from '@dcloudio/uni-app'
+import { computed, ref } from 'vue'
+import { onHide, onLoad, onShow } from '@dcloudio/uni-app'
 import SectionTitle from '../../components/SectionTitle.vue'
+import { getHomeSummary } from '../../api/home'
 
-const resourceBase = 'https://lzbjtjt.online/jgjy/resource'
-const defaultBannerImage = `${resourceBase}/6fc364b4e8082cdaea511d1d0fec14e0.jpg`
 const currentBanner = ref(0)
 const bannerAutoplay = ref(true)
-const banners = ref([
-  { type: 'image', image: defaultBannerImage },
-  { type: 'image', image: `${resourceBase}/0b77e2dab95ca796253cc32635ae9a83.jpg` },
-  { type: 'video', video: `${resourceBase}/00bf7c2dfeed5e16e74ee91017b85685.mp4`, poster: defaultBannerImage, videoError: false }
-])
+const homeSummary = ref({ totalTons: 0, productCount: 0, latestProducts: [] })
+const banners = ref([])
+const featuredProduct = computed(() => homeSummary.value.latestProducts[0])
 const businesses = [
   { title: '原酒收储', description: '集中入库、分级、陈化老熟', icon: '储', theme: 'amber' },
   { title: '原酒销售', description: '平台集中对外销售', icon: '售', theme: 'red' ,route: 'product'},
@@ -73,13 +71,13 @@ function handleBannerChange(event) {
   else videoContext.pause()
 }
 function handleImageError(banner) {
-  if (banner.image !== defaultBannerImage) banner.image = defaultBannerImage
+  banner.image = ''
 }
 function handleVideoError(banner) { banner.videoError = true }
 // 打开轮播图预览
 function openBanner(banner) {
   if (banner.type !== 'video' || banner.videoError) {
-    const image = banner.image || banner.poster || defaultBannerImage
+    const image = banner.image || banner.poster
     const urls = banners.value.filter((item) => item.type === 'image').map((item) => item.image)
     return uni.previewImage({ current: image, urls: urls.includes(image) ? urls : [image, ...urls] })
   }
@@ -99,6 +97,18 @@ function handleBusiness(item) {
 function goConsult(type = '') { uni.navigateTo({ url: `/pages/consult/index?type=${encodeURIComponent(type)}` }) }
 function goNews() { uni.navigateTo({ url: '/pages/news/index' }) }
 
+async function loadHome() {
+  try {
+    homeSummary.value = await getHomeSummary()
+    banners.value = homeSummary.value.latestProducts
+      .filter((product) => product.thumbnailUrl)
+      .map((product) => ({ type: 'image', image: product.thumbnailUrl }))
+  } catch (error) {
+    uni.showToast({ title: error.message || '首页数据加载失败', icon: 'none' })
+  }
+}
+
+onLoad(loadHome)
 onShow(() => {
   bannerAutoplay.value = true
   if (banners.value[currentBanner.value]?.type === 'video') uni.createVideoContext('home-banner-video').play()
