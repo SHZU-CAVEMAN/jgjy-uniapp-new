@@ -5,7 +5,7 @@
       <image :class="['hero-image', { loaded: heroLoaded }]" :src="heroImage" mode="aspectFill"
         @load="heroLoaded = true" @error="handleHeroError" />
       <view class="mask" />
-      <view class="hero-copy"><text>{{ company.name || '酒谷酒业' }}</text><text>{{ company.scale || '泸州产区原酒全产业链综合服务商' }}</text></view>
+      <view class="hero-copy"><text>{{ company.name || '酒谷酒业' }}</text></view>
     </view>
     <view class="intro"><text class="company">{{ company.name || '酒谷酒业' }}</text>
       <view class="intro-body">
@@ -108,12 +108,6 @@ onLoad(async () => {
 .hero-copy text:first-child {
   font-size: 38rpx;
   font-weight: 800;
-}
-
-.hero-copy text:last-child {
-  margin-top: 9rpx;
-  font-size: 24rpx;
-  opacity: .88;
 }
 
 .intro,

@@ -20,19 +20,18 @@
 <script setup>
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { getNews } from '../../api/news'
+import { getMyComments } from '../../api/engagement'
 
 const comments = ref([])
 
 async function refreshComments() {
   try {
-    const data = await getNews({ page: 1, pageSize: 100 })
-    comments.value = data.items.flatMap((article) => {
-    const records = uni.getStorageSync(`article-comments-${article.id}`) || []
-    return records.map((comment) => ({ ...comment, articleId: article.id, articleTitle: article.title }))
-    }).sort((left, right) => right.id - left.id)
-  } catch {
+    comments.value = await getMyComments()
+  } catch (error) {
     comments.value = []
+    if (uni.getStorageSync('auth-token')) {
+      uni.showToast({ title: error.message || '留言加载失败', icon: 'none' })
+    }
   }
 }
 function openArticle(articleId) { uni.navigateTo({ url: `/pages/article-detail/index?id=${articleId}` }) }

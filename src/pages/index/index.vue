@@ -22,9 +22,9 @@
 
     <view class="storage-card" @tap="goProducts('storage')">
       <view class="storage-head"><text>总库存</text><text class="storage-link">查看全部 ›</text></view>
-      <view class="storage-total"><text class="storage-number">{{ homeSummary.totalTons }}</text><text> 吨</text></view>
-      <text class="storage-caption">{{ homeSummary.productCount }} 个上架产品</text>
-      <view class="storage-trace"><text>{{ featuredProduct ? `${featuredProduct.tank || '储酒罐'} · ${featuredProduct.name}` : '暂无上架产品' }}</text><text>可溯源 ›</text></view>
+      <view class="storage-total"><text class="storage-number">11,440</text><text> 吨</text></view>
+      <text class="storage-caption">76 个酒体品种</text>
+      <view class="storage-trace"><text>陶坛 B-12 · 十年窖香调味酒</text><text>可溯源 ›</text></view>
     </view>
 
     <section-title title="主营业务" subtitle="原酒全产业链服务" />
@@ -47,16 +47,24 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
-import { onHide, onLoad, onShow } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+import { onHide, onShow } from '@dcloudio/uni-app'
 import SectionTitle from '../../components/SectionTitle.vue'
-import { getHomeSummary } from '../../api/home'
 
+const resourceBase = 'https://lzbjtjt.online/jgjy/resource'
+const defaultBannerImage = `${resourceBase}/6fc364b4e8082cdaea511d1d0fec14e0.jpg`
 const currentBanner = ref(0)
 const bannerAutoplay = ref(true)
-const homeSummary = ref({ totalTons: 0, productCount: 0, latestProducts: [] })
-const banners = ref([])
-const featuredProduct = computed(() => homeSummary.value.latestProducts[0])
+const banners = ref([
+  { type: 'image', image: defaultBannerImage },
+  { type: 'image', image: `${resourceBase}/0b77e2dab95ca796253cc32635ae9a83.jpg` },
+  {
+    type: 'video',
+    video: `${resourceBase}/00bf7c2dfeed5e16e74ee91017b85685.mp4`,
+    poster: defaultBannerImage,
+    videoError: false,
+  },
+])
 const businesses = [
   { title: '原酒收储', description: '集中入库、分级、陈化老熟', icon: '储', theme: 'amber' },
   { title: '原酒销售', description: '平台集中对外销售', icon: '售', theme: 'red' ,route: 'product'},
@@ -71,7 +79,7 @@ function handleBannerChange(event) {
   else videoContext.pause()
 }
 function handleImageError(banner) {
-  banner.image = ''
+  if (banner.image !== defaultBannerImage) banner.image = defaultBannerImage
 }
 function handleVideoError(banner) { banner.videoError = true }
 // 打开轮播图预览
@@ -97,18 +105,6 @@ function handleBusiness(item) {
 function goConsult(type = '') { uni.navigateTo({ url: `/pages/consult/index?type=${encodeURIComponent(type)}` }) }
 function goNews() { uni.navigateTo({ url: '/pages/news/index' }) }
 
-async function loadHome() {
-  try {
-    homeSummary.value = await getHomeSummary()
-    banners.value = homeSummary.value.latestProducts
-      .filter((product) => product.thumbnailUrl)
-      .map((product) => ({ type: 'image', image: product.thumbnailUrl }))
-  } catch (error) {
-    uni.showToast({ title: error.message || '首页数据加载失败', icon: 'none' })
-  }
-}
-
-onLoad(loadHome)
 onShow(() => {
   bannerAutoplay.value = true
   if (banners.value[currentBanner.value]?.type === 'video') uni.createVideoContext('home-banner-video').play()

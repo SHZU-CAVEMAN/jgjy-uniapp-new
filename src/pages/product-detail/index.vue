@@ -61,6 +61,7 @@ import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import InfoCard from "../../components/InfoCard.vue";
 import { downloadProductImage, getProduct } from "../../api/products";
+import { getMyFavorites, toggleFavorite } from "../../api/engagement";
 
 const product = ref({
   id: "",
@@ -87,9 +88,7 @@ onLoad(async ({ id }) => {
     imageSource.value = await downloadProductImage(
       product.value.detailImageUrl || product.value.thumbnailUrl
     );
-    collected.value = Boolean(
-      uni.getStorageSync(`product-collected-${product.value.id}`)
-    );
+    await refreshCollected();
   } catch (error) {
     uni.showModal({
       title: "产品加载失败",
@@ -99,9 +98,27 @@ onLoad(async ({ id }) => {
     });
   }
 });
-function toggleCollect() {
-  collected.value = !collected.value;
-  uni.setStorageSync(`product-collected-${product.value.id}`, collected.value);
+async function refreshCollected() {
+  if (!uni.getStorageSync("auth-token")) return;
+  try {
+    const favorites = await getMyFavorites();
+    collected.value = favorites.some(
+      (item) => item.type === "产品" && String(item.targetId) === String(product.value.id),
+    );
+  } catch {
+    collected.value = false;
+  }
+}
+async function toggleCollect() {
+  if (!uni.getStorageSync("auth-token")) {
+    return uni.showToast({ title: "请先登录", icon: "none" });
+  }
+  try {
+    const result = await toggleFavorite("产品", product.value.id);
+    collected.value = result.collected;
+  } catch (error) {
+    return uni.showToast({ title: error.message || "收藏操作失败", icon: "none" });
+  }
   uni.showToast({
     title: collected.value ? "已收藏" : "已取消收藏",
     icon: "none",

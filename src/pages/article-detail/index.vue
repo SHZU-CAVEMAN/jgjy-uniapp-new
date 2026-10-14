@@ -25,10 +25,13 @@
       </button>
       <button :class="{ active: collected }" @tap="toggleCollect">
         <text class="action-mark">藏</text
-        ><text>{{ collected ? "已收藏" : "收藏" }}</text>
+        ><text>{{ collected ? "已收藏" : "收藏" }} {{ favoriteCount }}</text>
       </button>
-      <button open-type="share">
-        <text class="action-mark">享</text><text>转发</text>
+      <button v-if="shareReady" open-type="share">
+        <text class="action-mark">享</text><text>转发 {{ shareCount }}</text>
+      </button>
+      <button v-else @tap="requireShareLogin">
+        <text class="action-mark">享</text><text>转发 {{ shareCount }}</text>
       </button>
     </view>
 
@@ -70,62 +73,113 @@
 
 <script setup>
 import { ref } from "vue";
-import { onLoad, onShareAppMessage, onShareTimeline } from "@dcloudio/uni-app";
+import { onLoad, onShareAppMessage, onShareTimeline, onShow } from "@dcloudio/uni-app";
+import { getCurrentMiniappUser } from "../../api/auth";
 import { getNewsArticle } from "../../api/news";
+import {
+  createArticleComment,
+  getArticleComments,
+  getArticleInteractions,
+  recordArticleShare,
+  toggleArticleLike,
+  toggleFavorite,
+} from "../../api/engagement";
 
 const article = ref({ id: "", title: "", category: "", author: "", summary: "", content: "" });
 const liked = ref(false);
 const collected = ref(false);
 const likeCount = ref(0);
+const favoriteCount = ref(0);
+const shareCount = ref(0);
+const shareReady = ref(false);
 const commentText = ref("");
 const comments = ref([]);
 
-function storageKey(type) {
-  return `article-${type}-${article.value.id}`;
+async function refreshInteractions() {
+  try {
+    const summary = await getArticleInteractions(article.value.id);
+    liked.value = summary.liked;
+    collected.value = summary.collected;
+    likeCount.value = summary.likeCount;
+    favoriteCount.value = summary.favoriteCount;
+    shareCount.value = summary.shareCount;
+  } catch {
+    liked.value = false;
+    collected.value = false;
+    likeCount.value = 0;
+    favoriteCount.value = 0;
+    shareCount.value = 0;
+  }
 }
-function loadInteractions() {
-  liked.value = Boolean(uni.getStorageSync(storageKey("liked")));
-  collected.value = Boolean(uni.getStorageSync(storageKey("collected")));
-  comments.value = uni.getStorageSync(storageKey("comments")) || [];
-  likeCount.value = liked.value ? 1 : 0;
-}
-function toggleLike() {
-  liked.value = !liked.value;
-  likeCount.value += liked.value ? 1 : -1;
-  uni.setStorageSync(storageKey("liked"), liked.value);
+async function toggleLike() {
+  if (!uni.getStorageSync("auth-token")) {
+    return uni.showToast({ title: "请先登录后点赞", icon: "none" });
+  }
+  try {
+    const summary = await toggleArticleLike(article.value.id);
+    liked.value = summary.liked;
+    likeCount.value = summary.likeCount;
+  } catch (error) {
+    return uni.showToast({ title: error.message || "点赞失败，请稍后重试", icon: "none" });
+  }
   uni.showToast({ title: liked.value ? "已点赞" : "已取消点赞", icon: "none" });
 }
-function toggleCollect() {
-  collected.value = !collected.value;
-  uni.setStorageSync(storageKey("collected"), collected.value);
+async function toggleCollect() {
+  if (!uni.getStorageSync("auth-token")) {
+    return uni.showToast({ title: "请先登录", icon: "none" });
+  }
+  try {
+    const result = await toggleFavorite("推文", article.value.id);
+    collected.value = result.collected;
+    const summary = await getArticleInteractions(article.value.id);
+    favoriteCount.value = summary.favoriteCount;
+  } catch (error) {
+    return uni.showToast({ title: error.message || "收藏操作失败", icon: "none" });
+  }
   uni.showToast({
     title: collected.value ? "已收藏" : "已取消收藏",
     icon: "none",
   });
 }
-function formatDate(date) {
-  const pad = (value) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
-  )} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+async function refreshComments() {
+  try {
+    comments.value = await getArticleComments(article.value.id);
+  } catch {
+    comments.value = [];
+  }
 }
-function submitComment() {
+async function submitComment() {
+  if (!uni.getStorageSync("auth-token")) {
+    return uni.showToast({ title: "请先登录后留言", icon: "none" });
+  }
   const content = commentText.value.trim();
   if (!content) return;
-  const profile = uni.getStorageSync("user-profile") || {};
-  const now = new Date();
-  comments.value.unshift({
-    id: now.getTime(),
-    name: profile.nickname || "微信用户",
-    content,
-    date: formatDate(now),
-  });
-  uni.setStorageSync(storageKey("comments"), comments.value);
-  commentText.value = "";
-  uni.showToast({ title: "留言成功", icon: "success" });
+  try {
+    const comment = await createArticleComment(article.value.id, content);
+    comments.value.unshift(comment);
+    commentText.value = "";
+    uni.showToast({ title: "留言成功", icon: "success" });
+  } catch (error) {
+    uni.showToast({ title: error.message || "留言失败，请稍后重试", icon: "none" });
+  }
 }
 function handleImageError() {
   article.value.image = "/static/logo.png";
+}
+
+async function refreshShareAuthorization() {
+  shareReady.value = false;
+  if (!uni.getStorageSync("auth-token")) return;
+  try {
+    shareReady.value = Boolean(await getCurrentMiniappUser());
+  } catch {
+    shareReady.value = false;
+  }
+}
+
+function requireShareLogin() {
+  uni.showToast({ title: "请先登录后转发", icon: "none" });
+  uni.switchTab({ url: "/pages/mine/index" });
 }
 
 onLoad(async ({ id }) => {
@@ -133,7 +187,7 @@ onLoad(async ({ id }) => {
     article.value = await getNewsArticle(id);
     article.value.content = normalizeArticleContent(article.value.content);
     uni.setNavigationBarTitle({ title: article.value.category });
-    loadInteractions();
+    await Promise.all([refreshInteractions(), refreshComments()]);
   } catch (error) {
     uni.showModal({
       title: "文章加载失败",
@@ -158,16 +212,30 @@ function normalizeArticleContent(content) {
   });
 }
 
-onShareAppMessage(() => ({
-  title: article.value.title,
-  path: `/pages/article-detail/index?id=${article.value.id}`,
-  imageUrl: article.value.image || "/static/logo.png",
-}));
-onShareTimeline(() => ({
-  title: article.value.title,
-  query: `id=${article.value.id}`,
-  imageUrl: article.value.image || "/static/logo.png",
-}));
+function logShare() {
+  if (uni.getStorageSync("auth-token")) {
+    recordArticleShare(article.value.id).then((summary) => {
+      shareCount.value = summary.shareCount;
+    }).catch(() => {});
+  }
+}
+onShareAppMessage(() => {
+  logShare();
+  return {
+    title: article.value.title,
+    path: `/pages/article-detail/index?id=${article.value.id}`,
+    imageUrl: article.value.image || "/static/logo.png",
+  };
+});
+onShareTimeline(() => {
+  logShare();
+  return {
+    title: article.value.title,
+    query: `id=${article.value.id}`,
+    imageUrl: article.value.image || "/static/logo.png",
+  };
+});
+onShow(refreshShareAuthorization);
 </script>
 
 <style scoped lang="scss">

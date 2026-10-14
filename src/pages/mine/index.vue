@@ -31,7 +31,7 @@
 
     <view class="quick-grid">
       <view v-for="item in quickEntries" :key="item.label" class="quick-item" @tap="openEntry(item)">
-        <view class="quick-icon">{{ item.short }}</view><text>{{ item.label }}</text><text v-if="item.count"
+        <view class="quick-icon">{{ item.short }}</view><text>{{ item.label }}</text><text v-if="item.count > 0"
           class="badge">{{ item.count }}</text>
       </view>
     </view>
@@ -84,6 +84,7 @@ import {
   uploadMiniappAvatar,
 } from "../../api/auth";
 import { getMyConsultations } from "../../api/consultations";
+import { getMyComments, getMyFavorites } from "../../api/engagement";
 
 const cachedProfile = uni.getStorageSync("user-profile") || {};
 const hasAuthToken = Boolean(uni.getStorageSync("auth-token"));
@@ -112,9 +113,9 @@ const maskedPhone = computed(() => {
 });
 const quickEntries = reactive([
   { label: "我的收藏", short: "藏", count: 0, route: "/pages/favorites/index" },
-  { label: "我的咨询", short: "询",count: 0, route: "/pages/my-consults/index"},
-  { label: "我的留言", short: "言",count: 0, route: "/pages/my-comments/index"},
-  { label: "我的溯源", short: "溯", count: 3, trace: true},
+  { label: "我的咨询", short: "询", count: 0, route: "/pages/my-consults/index" },
+  { label: "我的留言", short: "言", count: 0, route: "/pages/my-comments/index" },
+  { label: "我的溯源", short: "溯", trace: true },
 ]);
 function persistUser() {
   uni.setStorageSync("user-profile", { ...user });
@@ -129,6 +130,7 @@ function logout() {
   });
   uni.removeStorageSync("auth-token");
   clearAvatarCache();
+  quickEntries.forEach((item) => { item.count = 0; });
   persistUser();
 }
 async function handlePhoneNumber(event) {
@@ -155,6 +157,7 @@ async function handlePhoneNumber(event) {
     });
     if (account.token) uni.setStorageSync("auth-token", account.token);
     persistUser();
+    await refreshRemoteCounts();
     uni.showToast({ title: "登录成功", icon: "success" });
     if (isProfileIncomplete(account)) openProfileDialog();
   } catch (error) {
@@ -239,10 +242,9 @@ function requireLogin() {
 }
 // 打开入口
 function openEntry(item) {
-  if (item.route) return uni.navigateTo({ url: item.route });
   if (!requireLogin()) return;
+  if (item.route) return uni.navigateTo({ url: item.route });
   if (item.trace) return uni.switchTab({ url: "/pages/trace/index" });
-  uni.showToast({ title: `${item.label}功能调整中`, icon: "none" });
 }
 function goConsult() {
   uni.navigateTo({ url: "/pages/consult/index" });
@@ -250,26 +252,17 @@ function goConsult() {
 function goAbout() {
   uni.navigateTo({ url: "/pages/about/index" });
 }
-function refreshLocalCounts() {
-  const keys = uni.getStorageInfoSync().keys || [];
-  quickEntries[0].count = keys.filter(
-    (key) =>
-      (key.startsWith("product-collected-") ||
-        key.startsWith("article-collected-")) &&
-      uni.getStorageSync(key),
-  ).length;
-  quickEntries[1].count = 0;
-  quickEntries[2].count = keys
-    .filter((key) => key.startsWith("article-comments-"))
-    .reduce((total, key) => total + (uni.getStorageSync(key) || []).length, 0);
-}
-async function refreshConsultCount() {
+async function refreshRemoteCounts() {
+  quickEntries.forEach((item) => { item.count = 0; });
   if (!uni.getStorageSync("auth-token")) return;
-  try {
-    quickEntries[1].count = (await getMyConsultations()).length;
-  } catch {
-    quickEntries[1].count = 0;
-  }
+  const results = await Promise.all([
+    getMyFavorites().catch(() => []),
+    getMyConsultations().catch(() => []),
+    getMyComments().catch(() => []),
+  ]);
+  quickEntries[0].count = results[0].length;
+  quickEntries[1].count = results[1].length;
+  quickEntries[2].count = results[2].length;
 }
 async function restoreLogin() {
   if (!uni.getStorageSync("auth-token")) return;
@@ -282,10 +275,9 @@ async function restoreLogin() {
     logout();
   }
 }
-onShow(() => {
-  refreshLocalCounts();
-  refreshConsultCount();
-  restoreLogin();
+onShow(async () => {
+  await restoreLogin();
+  await refreshRemoteCounts();
 });
 </script>
 

@@ -62,28 +62,28 @@
 import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import ProductCard from "../../components/ProductCard.vue";
-import { getProducts } from "../../api/products";
-import { getNews } from "../../api/news";
+import { getMyFavorites } from "../../api/engagement";
 
 const activeTab = ref("products");
 const favoriteProducts = ref([]);
 const favoriteArticles = ref([]);
 
 async function refreshFavorites() {
-  try {
-    const data = await getProducts({ page: 1, pageSize: 100 });
-    favoriteProducts.value = data.items.filter((product) =>
-      uni.getStorageSync(`product-collected-${product.id}`)
-    );
-  } catch {
+  if (!uni.getStorageSync("auth-token")) {
     favoriteProducts.value = [];
+    favoriteArticles.value = [];
+    return;
   }
   try {
-    const data = await getNews({ page: 1, pageSize: 100 });
-    favoriteArticles.value = data.items.filter((article) =>
-      uni.getStorageSync(`article-collected-${article.id}`)
-    );
+    const favorites = await getMyFavorites();
+    favoriteProducts.value = favorites
+      .filter((favorite) => favorite.type === "产品" && favorite.item)
+      .map((favorite) => favorite.item);
+    favoriteArticles.value = favorites
+      .filter((favorite) => favorite.type === "推文" && favorite.item)
+      .map((favorite) => favorite.item);
   } catch {
+    favoriteProducts.value = [];
     favoriteArticles.value = [];
   }
 }
