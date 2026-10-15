@@ -253,16 +253,18 @@ function goAbout() {
   uni.navigateTo({ url: "/pages/about/index" });
 }
 async function refreshRemoteCounts() {
-  quickEntries.forEach((item) => { item.count = 0; });
-  if (!uni.getStorageSync("auth-token")) return;
+  if (!uni.getStorageSync("auth-token")) {
+    quickEntries.forEach((item) => { item.count = 0; });
+    return;
+  }
   const results = await Promise.all([
-    getMyFavorites().catch(() => []),
-    getMyConsultations().catch(() => []),
-    getMyComments().catch(() => []),
+    getMyFavorites().then((value) => value, () => null),
+    getMyConsultations().then((value) => value, () => null),
+    getMyComments().then((value) => value, () => null),
   ]);
-  quickEntries[0].count = results[0].length;
-  quickEntries[1].count = results[1].length;
-  quickEntries[2].count = results[2].length;
+  if (results[0] !== null) quickEntries[0].count = results[0].length;
+  if (results[1] !== null) quickEntries[1].count = results[1].length;
+  if (results[2] !== null) quickEntries[2].count = results[2].length;
 }
 async function restoreLogin() {
   if (!uni.getStorageSync("auth-token")) return;

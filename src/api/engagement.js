@@ -1,4 +1,5 @@
 import { apiRequest, apiUrl } from './request'
+import { normalizeWechatImageUrl } from './news'
 
 function requireToken() {
   const token = uni.getStorageSync('auth-token')
@@ -10,8 +11,11 @@ export function getMyFavorites() {
   return apiRequest('/api/miniapp/favorites', { token: requireToken() }).then((favorites) =>
     favorites.map((favorite) => {
       if (!favorite.item) return favorite
-      const resolveAsset = (url) =>
-        !url || /^https?:\/\//.test(url) ? url || '' : apiUrl(url)
+      const resolveAsset = (url) => {
+        const normalizedUrl = normalizeWechatImageUrl(url)
+        if (!normalizedUrl || /^https?:\/\//.test(normalizedUrl)) return normalizedUrl
+        return apiUrl(normalizedUrl)
+      }
       if (favorite.type === '产品') {
         const thumbnailUrl = resolveAsset(favorite.item.thumbnailUrl)
         return {
