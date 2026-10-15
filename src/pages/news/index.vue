@@ -1,16 +1,18 @@
 <template>
-  <view class="page-shell safe-bottom">
-    <scroll-view class="categories" scroll-x :show-scrollbar="false"
+  <view class="page-shell safe-bottom" @touchstart="onTouchStart" @touchend="onTouchEnd" @touchcancel="onTouchCancel">
+    <scroll-view class="categories" scroll-x :scroll-into-view="activeCategoryAnchor" :show-scrollbar="false"
       ><view class="category-row"
         ><text
           v-for="category in newsCategories"
           :key="category"
+          :id="`news-category-${newsCategories.indexOf(category)}`"
           :class="{ active: activeCategory === category }"
           @tap="activeCategory = category"
           >{{ category }}</text
         ></view
       ></scroll-view
     >
+    <view class="news-swipe-area">
     <view v-if="loading" class="empty">正在加载文章…</view>
     <view v-else-if="!filteredNews.length" class="empty">暂无已发布文章</view>
     <view v-else class="news-list">
@@ -38,6 +40,7 @@
       </view>
       <text class="footer">内容由企业新闻中心统一发布</text>
     </view>
+    </view>
   </view>
 </template>
 
@@ -46,11 +49,16 @@ import { computed, ref } from "vue";
 import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app";
 import { getNews } from "../../api/news";
 import { parseCompatibleDate } from "../../utils/platform";
+import { createHorizontalSwipeHandlers } from "../../utils/horizontalSwipe";
 
 const newsItems = ref([]);
 const activeCategory = ref("");
 const loading = ref(false);
 const newsCategories = computed(() => [...new Set(newsItems.value.map((item) => item.category))]);
+const activeCategoryIndex = computed(() => newsCategories.value.indexOf(activeCategory.value));
+const activeCategoryAnchor = computed(() =>
+  activeCategoryIndex.value >= 0 ? `news-category-${activeCategoryIndex.value}` : "",
+);
 const filteredNews = computed(() =>
   newsItems.value
     .filter((item) => item.category === activeCategory.value)
@@ -58,6 +66,15 @@ const filteredNews = computed(() =>
       (left, right) =>
         parseCompatibleDate(right.date) - parseCompatibleDate(left.date)
     )
+);
+function moveCategory(direction) {
+  const nextIndex = activeCategoryIndex.value + direction;
+  if (nextIndex < 0 || nextIndex >= newsCategories.value.length) return;
+  activeCategory.value = newsCategories.value[nextIndex];
+}
+const { onTouchStart, onTouchEnd, onTouchCancel } = createHorizontalSwipeHandlers(
+  () => moveCategory(1),
+  () => moveCategory(-1),
 );
 
 async function loadNews() {

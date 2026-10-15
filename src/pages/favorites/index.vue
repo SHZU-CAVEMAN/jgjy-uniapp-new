@@ -1,5 +1,5 @@
 <template>
-  <view class="page-shell safe-bottom">
+  <view class="page-shell safe-bottom" @touchstart="onTouchStart" @touchend="onTouchEnd" @touchcancel="onTouchCancel">
     <view class="tabs">
       <button
         :class="{ active: activeTab === 'products' }"
@@ -15,6 +15,7 @@
       </button>
     </view>
 
+    <view class="favorites-swipe-area">
     <view v-if="activeTab === 'products'" class="content product-list">
       <product-card
         v-for="product in favoriteProducts"
@@ -55,6 +56,7 @@
         <button @tap="goNews">去看文章</button>
       </view>
     </view>
+    </view>
   </view>
 </template>
 
@@ -63,10 +65,15 @@ import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import ProductCard from "../../components/ProductCard.vue";
 import { getMyFavorites } from "../../api/engagement";
+import { createHorizontalSwipeHandlers } from "../../utils/horizontalSwipe";
 
 const activeTab = ref("products");
 const favoriteProducts = ref([]);
 const favoriteArticles = ref([]);
+const { onTouchStart, onTouchEnd, onTouchCancel } = createHorizontalSwipeHandlers(
+  () => { activeTab.value = "articles" },
+  () => { activeTab.value = "products" },
+);
 
 async function refreshFavorites() {
   if (!uni.getStorageSync("auth-token")) {

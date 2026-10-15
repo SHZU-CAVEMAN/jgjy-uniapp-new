@@ -1,10 +1,11 @@
 <template>
-  <view class="page-shell safe-bottom">
+  <view class="page-shell safe-bottom" @touchstart="onTouchStart" @touchend="onTouchEnd" @touchcancel="onTouchCancel">
     <view class="segment">
       <view :class="{ active: segment === 'product' }" @tap="changeSegment('product')">产品中心</view>
       <view :class="{ active: segment === 'storage' }" @tap="changeSegment('storage')">储酒数据</view>
     </view>
 
+    <view class="segment-content">
     <template v-if="segment === 'product'">
       <view class="search"><text>⌕</text><input v-model.trim="keyword" placeholder="搜索产品名称 / 年份 / 香型"
           confirm-type="search" /></view>
@@ -53,6 +54,7 @@
         </view>
       </view>
     </template>
+    </view>
   </view>
 </template>
 
@@ -63,6 +65,7 @@ import ProductCard from '../../components/ProductCard.vue'
 import SectionTitle from '../../components/SectionTitle.vue'
 import { productTypes } from '../../data/catalog'
 import { getProducts } from '../../api/products'
+import { createHorizontalSwipeHandlers } from '../../utils/horizontalSwipe'
 
 const PAGE_SIZE = 4
 const segment = ref('product')
@@ -93,6 +96,10 @@ async function loadProducts() {
 }
 
 function changeSegment(value) { segment.value = value }
+const { onTouchStart, onTouchEnd, onTouchCancel } = createHorizontalSwipeHandlers(
+  () => { if (segment.value === 'product') changeSegment('storage') },
+  () => { if (segment.value === 'storage') changeSegment('product') },
+)
 function changeType(value) { activeType.value = value; page.value = 1 }
 function openProduct(product) { uni.navigateTo({ url: `/pages/product-detail/index?id=${product.id}` }) }
 function openStorage(product) { uni.navigateTo({ url: `/pages/storage-detail/index?id=${product.id}` }) }
