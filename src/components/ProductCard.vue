@@ -1,6 +1,6 @@
 <template>
   <view class="product-card" @tap="$emit('select', product)">
-    <image class="product-image" :src="imageSource" mode="aspectFill" lazy-load @error="imageSource = '/static/logo.png'" />
+    <async-image class="product-image" :src="imageSource" :pending="imagePending" mode="aspectFill" lazy-load />
     <view class="product-content">
       <text class="product-name">{{ product.name }}</text>
       <view class="tags"><text class="tag">{{ typeLabel }}</text><text class="tag">{{ product.year }}陈藏</text></view>
@@ -12,16 +12,26 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import AsyncImage from './AsyncImage.vue'
 import { downloadProductImage } from '../api/products'
 
 const props = defineProps({ product: { type: Object, required: true } })
 defineEmits(['select'])
-const imageSource = ref('/static/logo.png')
+const imageSource = ref('')
+const imagePending = ref(true)
 const typeNames = { nong: '浓香型', jiang: '酱香型', qing: '清香型' }
 const typeLabel = typeNames[props.product.type]
 watch(
   () => props.product.thumbnailUrl || props.product.image,
-  async (url) => { imageSource.value = await downloadProductImage(url) },
+  async (url) => {
+    imagePending.value = Boolean(url)
+    imageSource.value = ''
+    try {
+      imageSource.value = await downloadProductImage(url)
+    } finally {
+      imagePending.value = false
+    }
+  },
   { immediate: true },
 )
 </script>
@@ -34,6 +44,6 @@ watch(
 .tags { margin-top: 11rpx; display: flex; gap: 9rpx; }
 .tag { padding: 5rpx 11rpx; border-radius: 6rpx; color: $brand-primary; background: #e6f5fa; font-size: $font-caption; }
 .product-description { margin-top: 11rpx; color: $text-muted; font-size: 24rpx; line-height: 1.55; }
-.price { margin-top: 12rpx; color: #b82d45; font-size: 32rpx; font-weight: 700; }
+.price { margin-top: 12rpx; color: $brand-primary; font-size: 32rpx; font-weight: 700; }
 .unit { color: $text-muted; font-size: $font-caption; font-weight: 400; }
 </style>

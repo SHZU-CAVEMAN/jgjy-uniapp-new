@@ -8,75 +8,91 @@
       ><text>填写基本信息，企业顾问将在一个工作日内联系您</text></view
     >
     <view class="form-card">
-      <view class="form-row"
-        ><text class="label required">客户名称</text
-        ><input
-          v-model.trim="form.name"
-          maxlength="30"
-          placeholder="请输入您的名称"
-      /></view>
-      <view class="form-row"
-        ><text class="label required">联系电话</text
-        ><input
-          v-model.trim="form.phone"
-          type="number"
-          maxlength="11"
-          placeholder="请输入手机号码"
-      /></view>
-      <picker
-        :range="demandTypes"
-        range-key="name"
-        :value="demandIndex"
-        @change="changeDemand"
-        ><view class="form-row"
-          ><text class="label required">需求类型</text
-          ><text :class="['value', { placeholder: demandIndex < 0 }]">{{
-            demandIndex < 0 ? "请选择需求类型" : demandTypes[demandIndex]?.name
-          }}</text
-          ><text class="arrow">›</text></view
-        ></picker
+      <view class="customer-type-row">
+        <text class="field-label required">客户类型</text>
+        <t-radio-group
+          :value="form.customerType"
+          borderless
+          custom-style="display:flex;flex:1;align-items:center;justify-content:space-between;gap:12rpx"
+          @change="changeCustomerType"
+        >
+          <t-radio
+            v-for="type in customerTypes"
+            :key="type"
+            :block="false"
+            :label="type"
+            :value="type"
+          />
+        </t-radio-group>
+      </view>
+      <t-input v-model:value="form.name" class="form-input" borderless maxlength="30" placeholder="请输入您的名称">
+        <template #label><text class="field-label required">客户名称</text></template>
+      </t-input>
+      <t-input v-model:value="form.phone" class="form-input" borderless type="number" maxlength="11" placeholder="请输入手机号码">
+        <template #label><text class="field-label required">联系电话</text></template>
+      </t-input>
+      <t-cell
+        class="category-cell"
+        t-class-center="category-title"
+        t-class-note="category-note"
+        :note="selectedDemandName || '请选择需求类型'"
+        arrow
+        @click="demandPickerVisible = true"
       >
-      <view class="form-row"
-        ><text class="label">所在地区</text
-        ><input
-          v-model.trim="form.region"
-          maxlength="50"
-          placeholder="请输入省市地区（选填）"
-      /></view>
-      <view class="form-row"
-        ><text class="label">预算金额</text
-        ><input
-          v-model.trim="form.budget"
-          maxlength="30"
-          placeholder="如 10 万元（选填）"
-      /></view>
-      <view class="textarea-row"
-        ><text class="label">需求说明</text
-        ><textarea
-          v-model.trim="form.remark"
+        <template #title><text class="field-label required">需求类型</text></template>
+      </t-cell>
+      <t-picker
+        v-model:visible="demandPickerVisible"
+        :value="selectedDemandValue"
+        :visible-item-count="3"
+        title="选择需求类型"
+        cancel-btn="取消"
+        confirm-btn="确定"
+        @confirm="changeDemand"
+      >
+        <t-picker-item :options="demandOptions" />
+      </t-picker>
+      <t-input v-model:value="form.region" class="form-input" borderless maxlength="50" placeholder="请输入省市地区（选填）">
+        <template #label><text class="field-label">所在地区</text></template>
+      </t-input>
+      <t-input v-model:value="form.budget" class="form-input" borderless maxlength="30" placeholder="如 10 万元（选填）">
+        <template #label><text class="field-label">预算金额</text></template>
+      </t-input>
+      <view class="remark-field">
+        <text class="field-label">需求说明</text>
+        <t-textarea
+          v-model:value="form.remark"
+          class="remark-input"
+          t-class-textarea="consult-remark-textarea"
           maxlength="300"
-          auto-height
+          :autosize="{ minHeight: 96, maxHeight: 220 }"
+          indicator
           placeholder="请简要描述产品、数量或交付周期"
-        /><text class="counter">{{ form.remark.length }}/300</text></view
-      >
+        />
+      </view>
     </view>
     <text class="privacy"
       >提交即表示您同意企业顾问仅将以上信息用于本次业务咨询。</text
     >
-    <button
-      class="primary-button"
-      :loading="submitting"
-      :disabled="submitting"
-      @tap="submit"
-    >
-      提交咨询
-    </button>
-    <button class="contact-button" open-type="contact">直接联系在线客服</button>
+    <view class="action-buttons">
+      <t-button
+        class="submit-button"
+        theme="primary"
+        size="large"
+        shape="round"
+        block
+        :loading="submitting"
+        :disabled="submitting"
+        @click="submit"
+      >
+        提交咨询
+      </t-button>
+    </view>
   </view>
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { onLoad, onUnload } from "@dcloudio/uni-app";
 import { getCurrentMiniappUser } from "../../api/auth";
 import { getNeedCategories, submitConsultation } from "../../api/consultations";
@@ -84,9 +100,15 @@ import { supportsBaseLibrary } from "../../utils/platform";
 
 const demandTypes = ref([]);
 const demandIndex = ref(-1);
+const demandPickerVisible = ref(false);
+const demandOptions = computed(() => demandTypes.value.map((item) => ({ label: item.name, value: item.id })));
+const selectedDemandValue = computed(() => demandIndex.value < 0 ? [] : [demandTypes.value[demandIndex.value]?.id]);
+const selectedDemandName = computed(() => demandTypes.value[demandIndex.value]?.name || "");
+const customerTypes = ["个人", "企业", "经销商"];
 const keyboardHeight = ref(0);
 const submitting = ref(false);
 const form = reactive({
+  customerType: "个人",
   name: "",
   phone: "",
   region: "",
@@ -144,12 +166,20 @@ onUnload(() => {
 });
 
 function changeDemand(event) {
-  demandIndex.value = Number(event.detail.value);
+  const selectedId = event.value?.[0];
+  demandIndex.value = demandTypes.value.findIndex(
+    (item) => String(item.id) === String(selectedId)
+  );
+}
+function changeCustomerType(event) {
+  form.customerType = event.value;
 }
 async function submit() {
-  if (!form.name)
+  const name = form.name.trim();
+  const phone = form.phone.trim();
+  if (!name)
     return uni.showToast({ title: "请输入客户名称", icon: "none" });
-  if (!/^1\d{10}$/.test(form.phone))
+  if (!/^1\d{10}$/.test(phone))
     return uni.showToast({ title: "请输入正确的手机号", icon: "none" });
   if (demandIndex.value < 0)
     return uni.showToast({ title: "请选择需求类型", icon: "none" });
@@ -158,12 +188,13 @@ async function submit() {
   submitting.value = true;
   try {
     await submitConsultation({
-      name: form.name,
-      phone: form.phone,
+      name,
+      phone,
       categoryId: demandTypes.value[demandIndex.value].id,
-      region: form.region,
-      budget: form.budget,
-      remark: form.remark,
+      customerType: form.customerType,
+      region: form.region.trim(),
+      budget: form.budget.trim(),
+      remark: form.remark.trim(),
     });
     uni.showModal({
       title: "提交成功",
@@ -206,87 +237,91 @@ async function submit() {
 }
 .form-card {
   margin: 24rpx 24rpx 0;
-  padding: 0 30rpx;
+  padding: 8rpx 28rpx;
   border-radius: 16rpx;
   background: #fff;
   box-shadow: $card-shadow;
+  --td-input-label-text-font: 500 30rpx/48rpx "PingFang SC", "Microsoft YaHei", sans-serif;
+  --td-input-placeholder-text-font: 400 28rpx/48rpx "PingFang SC", "Microsoft YaHei", sans-serif;
+  --td-input-default-text-color: #174b78;
+  --td-input-vertical-padding: 32rpx;
+  --td-radio-font: 500 30rpx/56rpx "PingFang SC", "Microsoft YaHei", sans-serif;
+  --td-radio-icon-size: 44rpx;
+  --td-radio-label-line-height: 56rpx;
+  --td-picker-item-font-size: 30rpx;
+  --td-picker-title-font: 32rpx;
+  --td-picker-button-font: 28rpx;
+  --td-cell-title-font: 500 30rpx/48rpx "PingFang SC", "Microsoft YaHei", sans-serif;
+  --td-cell-note-font-size: 27rpx;
 }
-.form-row {
-  min-height: 104rpx;
+.customer-type-row {
+  min-height: 112rpx;
+  padding-left: 32rpx;
   border-bottom: 1rpx solid $line-color;
   display: flex;
   align-items: center;
-  gap: 18rpx;
+  gap: 0;
 }
-.label {
+.customer-type-row > .field-label {
   width: 160rpx;
-  flex-shrink: 0;
-  color: $text-title;
-  font-size: 26rpx;
-  font-weight: 600;
+  flex: 0 0 160rpx;
+  margin-right: 32rpx;
 }
-.label.required::before {
+.field-label {
+  color: $text-title;
+  font-size: 28rpx;
+  line-height: 48rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.field-label.required::before {
   content: "*";
   margin-right: 5rpx;
   color: #b82d45;
 }
-.form-row input {
-  flex: 1;
-  min-width: 0;
-  text-align: right;
-  font-size: 26rpx;
+.form-input {
+  border-bottom: 1rpx solid $line-color;
 }
-.value {
-  flex: 1;
-  color: $text-body;
-  text-align: right;
-  font-size: 26rpx;
+.form-input :deep(.t-input__label) {
+  width: 160rpx;
+  min-width: 160rpx;
+  max-width: 160rpx;
+  flex: 0 0 160rpx;
 }
-.placeholder {
-  color: #a8b1b8;
+.category-cell {
+  border-bottom: 1rpx solid $line-color;
 }
-.arrow {
-  color: #a8b1b8;
-  font-size: 32rpx;
+.category-cell :deep(.category-title) {
+  flex: 0 0 160rpx;
+  margin-right: 32rpx;
 }
-.textarea-row {
-  padding: 28rpx 0;
-  position: relative;
-  display: flex;
-  align-items: flex-start;
+.category-cell :deep(.category-note) {
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  text-align: left;
 }
-.textarea-row textarea {
-  flex: 1;
+.remark-field {
+  padding: 32rpx 0 8rpx 32rpx;
+}
+.remark-input {
+  margin-top: 12rpx;
+  --td-textarea-padding: 16rpx 0;
+  --td-textarea-placeholder-color: #9cb3c5;
+  --td-textarea-indicator-text-color: #89a4b8;
+}
+.remark-input :deep(.consult-remark-textarea) {
   min-height: 150rpx;
-  font-size: 25rpx;
+  font-size: 28rpx;
   line-height: 1.65;
-}
-.counter {
-  position: absolute;
-  right: 0;
-  bottom: 12rpx;
-  color: $text-muted;
-  font-size: 21rpx;
 }
 .privacy {
   display: block;
   margin: 20rpx 28rpx 0;
   color: $text-muted;
-  font-size: 22rpx;
+  font-size: 24rpx;
   line-height: 1.6;
 }
-.primary-button {
+.action-buttons {
   margin: 24rpx 24rpx 0;
-}
-.contact-button {
-  margin: 18rpx 24rpx 0;
-  height: 92rpx;
-  border: 2rpx solid $brand-primary;
-  border-radius: 14rpx;
-  color: $brand-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 27rpx;
 }
 </style>

@@ -1,8 +1,9 @@
 <template>
   <view class="page-shell safe-bottom">
     <view class="profile">
-      <image v-if="user.avatarUrl" class="avatar" :src="user.avatarUrl" mode="aspectFill" lazy-load
-        @tap="openProfileDialog" @error="handleUserAvatarError" />
+      <view v-if="user.avatarUrl" class="avatar avatar-image" @tap="openProfileDialog">
+        <async-image :src="user.avatarUrl" mode="aspectFill" lazy-load @error="handleUserAvatarError" />
+      </view>
       <view v-else class="avatar fallback" @tap="openProfileDialog">{{
         user.loggedIn ? (user.nickname || "微").slice(0, 1) : "访"
       }}</view>
@@ -57,7 +58,8 @@
         <text class="profile-dialog-title">完善个人资料</text>
         <text class="profile-dialog-tip">头像和昵称由你主动选择，可随时修改</text>
         <button class="avatar-picker" open-type="chooseAvatar" @chooseavatar="handleChooseAvatar">
-          <image v-if="profileDraft.avatarUrl" :src="profileDraft.avatarUrl" mode="aspectFill" lazy-load />
+          <async-image v-if="profileDraft.avatarUrl" class="profile-avatar-image" :src="profileDraft.avatarUrl"
+            mode="aspectFill" lazy-load />
           <view v-else class="avatar-picker-placeholder">选择头像</view>
         </button>
         <input class="nickname-input" type="nickname" :value="profileDraft.nickname" maxlength="64"
@@ -69,13 +71,25 @@
         </view>
       </view>
     </view>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
+import AsyncImage from "../../components/AsyncImage.vue";
 import { supportsBaseLibrary } from "../../utils/platform";
+import { useContactBallDrag } from "../../utils/contactBallDrag";
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag();
 import {
   clearAvatarCache,
   getCurrentMiniappUser,
@@ -301,8 +315,13 @@ onShow(async () => {
 .avatar {
   width: 112rpx;
   height: 112rpx;
+  flex-shrink: 0;
   border: 4rpx solid rgba(255, 255, 255, 0.7);
   border-radius: 50%;
+}
+
+.avatar-image {
+  overflow: hidden;
 }
 
 .avatar.fallback {
@@ -491,7 +510,7 @@ onShow(async () => {
   overflow: hidden;
 }
 
-.avatar-picker image,
+.avatar-picker .profile-avatar-image,
 .avatar-picker-placeholder {
   width: 100%;
   height: 100%;

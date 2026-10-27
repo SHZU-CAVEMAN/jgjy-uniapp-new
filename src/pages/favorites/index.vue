@@ -16,7 +16,16 @@
     </view>
 
     <view class="favorites-swipe-area">
-    <view v-if="activeTab === 'products'" class="content product-list">
+    <view v-if="loading" class="content favorite-skeleton-list">
+      <view v-for="index in 3" :key="index" class="favorite-skeleton">
+        <t-skeleton class="favorite-skeleton-image" theme="image" animation="gradient" loading />
+        <view class="favorite-skeleton-copy">
+          <t-skeleton theme="paragraph" :row-col="favoriteSkeletonRows" animation="gradient" loading />
+        </view>
+      </view>
+    </view>
+
+    <view v-else-if="activeTab === 'products'" class="content product-list">
       <product-card
         v-for="product in favoriteProducts"
         :key="product.id"
@@ -47,7 +56,7 @@
             ><text>{{ article.reads }} 阅读</text></view
           >
         </view>
-        <image :src="article.image || '/static/logo.png'" mode="aspectFill" />
+        <async-image class="article-image" :src="article.image" mode="aspectFill" lazy-load />
       </view>
       <view v-if="!favoriteArticles.length" class="empty">
         <view class="empty-mark">藏</view>
@@ -57,28 +66,48 @@
       </view>
     </view>
     </view>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { onShow } from "@dcloudio/uni-app";
+import AsyncImage from "../../components/AsyncImage.vue";
 import ProductCard from "../../components/ProductCard.vue";
 import { getMyFavorites } from "../../api/engagement";
 import { createHorizontalSwipeHandlers } from "../../utils/horizontalSwipe";
+import { useContactBallDrag } from "../../utils/contactBallDrag";
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag();
 
 const activeTab = ref("products");
+const loading = ref(true);
 const favoriteProducts = ref([]);
 const favoriteArticles = ref([]);
+const favoriteSkeletonRows = [
+  { width: "80%", height: "30rpx" },
+  { width: "100%", height: "24rpx" },
+  { width: "60%", height: "24rpx" },
+];
 const { onTouchStart, onTouchEnd, onTouchCancel } = createHorizontalSwipeHandlers(
   () => { activeTab.value = "articles" },
   () => { activeTab.value = "products" },
 );
 
 async function refreshFavorites() {
+  loading.value = true;
   if (!uni.getStorageSync("auth-token")) {
     favoriteProducts.value = [];
     favoriteArticles.value = [];
+    loading.value = false;
     return;
   }
   try {
@@ -92,6 +121,8 @@ async function refreshFavorites() {
   } catch {
     favoriteProducts.value = [];
     favoriteArticles.value = [];
+  } finally {
+    loading.value = false;
   }
 }
 function openProduct(product) {
@@ -204,13 +235,24 @@ onShow(refreshFavorites);
   gap: 16rpx;
   font-size: 21rpx;
 }
-.article-item image {
+.article-item .article-image {
   width: 190rpx;
   height: 170rpx;
   flex-shrink: 0;
   border-radius: 10rpx;
-  background: #e8f2f5;
 }
+.favorite-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 22rpx;
+  padding: 26rpx;
+  border-radius: 12rpx;
+  background: #fff;
+  box-shadow: $card-shadow;
+}
+.favorite-skeleton-image { width: 176rpx; height: 176rpx; flex-shrink: 0; }
+.favorite-skeleton-copy { flex: 1; }
 .empty {
   padding: 150rpx 20rpx 40rpx;
   display: flex;

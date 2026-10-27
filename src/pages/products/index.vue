@@ -1,12 +1,5 @@
 <template>
   <view class="page-shell safe-bottom" @touchstart="onTouchStart" @touchend="onTouchEnd" @touchcancel="onTouchCancel">
-    <view class="segment">
-      <view :class="{ active: segment === 'product' }" @tap="changeSegment('product')">产品中心</view>
-      <view :class="{ active: segment === 'storage' }" @tap="changeSegment('storage')">储酒数据</view>
-    </view>
-
-    <view class="segment-content">
-    <template v-if="segment === 'product'">
       <view class="search"><text>⌕</text><input v-model.trim="keyword" placeholder="搜索产品名称 / 年份 / 香型"
           confirm-type="search" /></view>
       <view class="type-tabs">
@@ -14,46 +7,27 @@
           @tap="changeType(item.value)">{{ item.label }}</view>
       </view>
       <view class="product-list">
-        <view v-if="loading" class="empty">产品加载中...</view>
-        <product-card v-for="product in visibleProducts" v-else :key="product.id" :product="product" @select="openProduct" />
-        <view v-if="!loading && !filteredProducts.length" class="empty">暂无匹配产品</view>
-        <text v-else-if="!loading" class="list-status">{{ hasMore ? '上拉加载更多' : `已展示全部 ${filteredProducts.length} 款产品` }}</text>
-      </view>
-    </template>
-
-    <template v-else>
-      <!-- <view class="live-card">
-        <view class="live-head"><text>酒库实时数据</text><text class="live-status"><text class="live-dot" />LIVE 实时</text>
-        </view>
-        <view class="metrics">
-          <view><text>22.5°C</text><text>库内温度</text></view>
-          <view><text>68%RH</text><text>库内湿度</text></view>
-          <view><text class="normal">正常</text><text>通风状态</text></view>
-        </view>
-        <view class="metrics secondary">
-          <view><text>101.3 kPa</text><text>气压</text></view>
-          <view><text>0.03%</text><text>CO₂ 浓度</text></view>
-        </view>
-      </view> -->
-      <view class="summary">
-        <view><text>11,440</text><text>总库存(吨)</text></view>
-        <view><text>76</text><text>酒体品种</text></view>
-        <view><text>3</text><text>储存区域</text></view>
-      </view>
-      <section-title title="罐体列表"/>
-      <view class="tank-list">
-        <view v-for="product in storageProducts" :key="product.id" class="tank" @tap="openStorage(product)">
-          <view class="tank-mark">{{ product.zone.includes('钢') ? '钢' : '陶' }}</view>
-          <view class="tank-content"><text class="tank-name">{{ product.tank }} · {{ product.name }}</text><text
-              class="tank-meta">{{ product.zone }} · 实时监测中</text>
-            <view class="progress">
-              <view :style="{ width: `${product.fill}%` }" />
+        <template v-if="loading">
+          <view v-for="index in 3" :key="index" class="product-skeleton">
+            <t-skeleton class="product-skeleton-image" theme="image" animation="gradient" loading />
+            <view class="product-skeleton-copy">
+              <t-skeleton theme="paragraph" :row-col="productSkeletonRows" animation="gradient" loading />
             </view>
           </view>
-          <view class="tank-value"><text>{{ product.tons }}</text><text>吨</text></view>
-        </view>
+        </template>
+        <template v-else>
+          <product-card v-for="product in visibleProducts" :key="product.id" :product="product" @select="openProduct" />
+          <view v-if="!filteredProducts.length" class="empty">暂无匹配产品</view>
+          <text v-else class="list-status">{{ hasMore ? '上拉加载更多' : `已展示全部 ${filteredProducts.length} 款产品` }}</text>
+        </template>
       </view>
-    </template>
+
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
     </view>
   </view>
 </template>
@@ -62,25 +36,31 @@
 import { computed, ref } from 'vue'
 import { onReachBottom, onShow } from '@dcloudio/uni-app'
 import ProductCard from '../../components/ProductCard.vue'
-import SectionTitle from '../../components/SectionTitle.vue'
 import { productTypes } from '../../data/catalog'
 import { getProducts } from '../../api/products'
 import { createHorizontalSwipeHandlers } from '../../utils/horizontalSwipe'
+import { useContactBallDrag } from '../../utils/contactBallDrag'
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag()
 
 const PAGE_SIZE = 4
-const segment = ref('product')
 const activeType = ref('nong')
 const keyword = ref('')
 const page = ref(1)
 const products = ref([])
-const loading = ref(false)
+const loading = ref(true)
+const productSkeletonRows = [
+  { width: '76%', height: '30rpx' },
+  { width: '54%', height: '22rpx' },
+  { width: '92%', height: '24rpx' },
+]
 const filteredProducts = computed(() => products.value.filter((item) => {
   const typeName = productTypes.find((type) => type.value === item.type)?.label || ''
   return item.type === activeType.value && `${item.name}${item.year}${typeName}`.includes(keyword.value)
 }))
 const visibleProducts = computed(() => filteredProducts.value.slice(0, page.value * PAGE_SIZE))
 const hasMore = computed(() => visibleProducts.value.length < filteredProducts.value.length)
-const storageProducts = computed(() => products.value.slice(0, 6))
 
 async function loadProducts() {
   loading.value = true
@@ -95,23 +75,21 @@ async function loadProducts() {
   }
 }
 
-function changeSegment(value) { segment.value = value }
-const { onTouchStart, onTouchEnd, onTouchCancel } = createHorizontalSwipeHandlers(
-  () => { if (segment.value === 'product') changeSegment('storage') },
-  () => { if (segment.value === 'storage') changeSegment('product') },
-)
 function changeType(value) { activeType.value = value; page.value = 1 }
 function openProduct(product) { uni.navigateTo({ url: `/pages/product-detail/index?id=${product.id}` }) }
-function openStorage(product) { uni.navigateTo({ url: `/pages/storage-detail/index?id=${product.id}` }) }
 
-onShow(() => {
-  loadProducts()
-  const storedSegment = uni.getStorageSync('product-segment')
-  if (storedSegment) {
-    segment.value = storedSegment
-    uni.removeStorageSync('product-segment')
-  }
-})
+function stepType(direction) {
+  const index = productTypes.findIndex((type) => type.value === activeType.value)
+  const next = (index + direction + productTypes.length) % productTypes.length
+  changeType(productTypes[next].value)
+}
+const { onTouchStart, onTouchEnd, onTouchCancel } = createHorizontalSwipeHandlers(
+  () => stepType(1),
+  () => stepType(-1),
+  () => contactBallDragged.value,
+)
+
+onShow(loadProducts)
 onReachBottom(() => { if (hasMore.value) page.value += 1 })
 </script>
 
@@ -175,6 +153,24 @@ onReachBottom(() => { if (hasMore.value) page.value += 1 })
   padding: 22rpx 24rpx 0;
 }
 
+.product-skeleton,
+.tank-skeleton {
+  margin-bottom: 22rpx;
+  padding: 26rpx;
+  border: 1rpx solid $line-color;
+  border-radius: 16rpx;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  box-shadow: $card-shadow;
+}
+
+.product-skeleton-image { width: 176rpx; height: 176rpx; flex-shrink: 0; }
+.product-skeleton-copy,
+.tank-skeleton-copy { flex: 1; min-width: 0; }
+.tank-skeleton { min-height: 132rpx; }
+
 .empty,
 .list-status {
   display: block;
@@ -189,7 +185,7 @@ onReachBottom(() => { if (hasMore.value) page.value += 1 })
   padding: 32rpx;
   border-radius: 16rpx;
   color: #fff;
-  background: linear-gradient(145deg, #082d3e, #075478);
+  background: linear-gradient(145deg, #55baf4, $brand-primary);
 }
 
 .live-head {

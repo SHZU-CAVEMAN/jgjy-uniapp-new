@@ -1,7 +1,12 @@
 <template>
   <view class="page-shell safe-bottom">
-    <view v-if="records.length" class="list-head"><text>咨询记录</text><text>共 {{ records.length }} 条</text></view>
+    <view v-if="records.length && !loading" class="list-head"><text>咨询记录</text><text>共 {{ records.length }} 条</text></view>
     <view class="record-list">
+      <template v-if="loading">
+        <view v-for="index in 3" :key="index" class="record-skeleton">
+          <t-skeleton theme="paragraph" :row-col="recordSkeletonRows" animation="gradient" loading />
+        </view>
+      </template>
       <view v-for="record in records" :key="record.id" class="record-card">
         <view class="record-head"><text>{{ record.type }}</text><text class="status">{{ record.status }}</text></view>
         <view class="record-row"><text>提交时间</text><text>{{ record.date }}</text></view>
@@ -11,13 +16,20 @@
         <view v-if="record.remark" class="remark"><text>需求说明</text><text>{{ record.remark }}</text></view>
       </view>
     </view>
-    <view v-if="!records.length" class="empty">
+    <view v-if="!loading && !records.length" class="empty">
       <view class="empty-mark">询</view>
       <text class="empty-title">暂无咨询记录</text>
       <text class="empty-desc">提交需求后，可在这里查看咨询内容与状态</text>
       <button @tap="goConsult">发起咨询</button>
     </view>
-    <button v-else class="primary-button create-button" @tap="goConsult">再次发起咨询</button>
+    <button v-else-if="!loading" class="primary-button create-button" @tap="goConsult">再次发起咨询</button>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
@@ -25,8 +37,19 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getMyConsultations } from '../../api/consultations'
+import { useContactBallDrag } from '../../utils/contactBallDrag'
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag()
 
 const records = ref([])
+const loading = ref(true)
+const recordSkeletonRows = [
+  { width: '72%', height: '30rpx' },
+  { width: '100%', height: '24rpx' },
+  { width: '84%', height: '24rpx' },
+  { width: '94%', height: '24rpx' },
+]
 
 function maskPhone(phone = '') {
   if (phone.length !== 11) return phone
@@ -34,11 +57,14 @@ function maskPhone(phone = '') {
 }
 function goConsult() { uni.navigateTo({ url: '/pages/consult/index' }) }
 onShow(async () => {
+  loading.value = true
   try {
     records.value = await getMyConsultations()
   } catch (error) {
     records.value = []
     uni.showToast({ title: error.message || '咨询记录加载失败', icon: 'none' })
+  } finally {
+    loading.value = false
   }
 })
 </script>
@@ -73,6 +99,14 @@ onShow(async () => {
 }
 
 .record-card {
+  margin-bottom: 22rpx;
+  padding: 30rpx;
+  border-radius: 12rpx;
+  background: #fff;
+  box-shadow: $card-shadow;
+}
+
+.record-skeleton {
   margin-bottom: 22rpx;
   padding: 30rpx;
   border-radius: 12rpx;

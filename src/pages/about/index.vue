@@ -1,9 +1,7 @@
 <template>
   <view class="page-shell safe-bottom">
     <view class="hero">
-      <view v-if="!heroLoaded" class="hero-placeholder" />
-      <image :class="['hero-image', { loaded: heroLoaded }]" :src="heroImage" mode="aspectFill"
-        @load="heroLoaded = true" @error="handleHeroError" />
+      <async-image class="hero-image" :src="heroImage" mode="aspectFill" />
       <view class="mask" />
       <view class="hero-copy"><text>{{ company.name || '酒谷酒业' }}</text></view>
     </view>
@@ -19,34 +17,40 @@
     </view>
     <section-title title="企业实力" />
     <view class="photos">
-      <image v-for="(image, index) in photos" :key="index" :src="image" mode="aspectFill" lazy-load
-        @error="photos[index] = '/static/logo.png'" />
+      <async-image v-for="(image, index) in photos" :key="index" class="photo-image" :src="image"
+        mode="aspectFill" lazy-load />
     </view>
     <view class="trace-copy"><text>从原料、酿造、存储到质检全程可查，每一罐原酒均配备独立溯源码，支持扫码验真。</text></view>
     <view class="contact"><text>联系电话</text><text selectable>{{ company.servicePhone || company.phone || '-' }}</text><text>公司地址</text><text>{{ company.address || '-' }}</text><text>电子邮箱</text><text>{{ company.email || '-' }}</text></view>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import AsyncImage from '../../components/AsyncImage.vue'
 import SectionTitle from '../../components/SectionTitle.vue'
 import { getCompany } from '../../api/home'
+import { useContactBallDrag } from '../../utils/contactBallDrag'
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag()
 
 const resourceBase = 'https://lzbjtjt.online/jgjy/resource'
 const heroImage = ref(`${resourceBase}/48dcc5dd10c3f4fe14af9ec847e4010d.jpg`)
-const heroLoaded = ref(false)
 const company = ref({})
 const photos = ref([
   `${resourceBase}/138d63084c6ff384217f7568b3b0d014.jpg`,
   `${resourceBase}/ac0412e9d010ac09059754425226451c.jpg`,
   `${resourceBase}/bd103da8a9a17928697ed32e58c54831.jpg`,
 ])
-
-function handleHeroError() {
-  heroLoaded.value = true
-  heroImage.value = ''
-}
 
 onLoad(async () => {
   try {
@@ -74,21 +78,6 @@ onLoad(async () => {
   width: 100%;
   height: 100%;
   position: absolute;
-}
-
-.hero-image {
-  opacity: 0;
-  transition: opacity .25s ease;
-}
-
-.hero-image.loaded {
-  opacity: 1;
-}
-
-.hero-placeholder {
-  position: absolute;
-  inset: 0;
-  background: #dce9ed;
 }
 
 .mask {
@@ -178,7 +167,7 @@ onLoad(async () => {
   gap: 14rpx;
 }
 
-.photos image {
+.photos .photo-image {
   width: calc((100% - 28rpx) / 3);
   height: 150rpx;
   border-radius: 12rpx;

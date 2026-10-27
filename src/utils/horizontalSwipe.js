@@ -1,7 +1,7 @@
 const MIN_SWIPE_DISTANCE = 56
 const HORIZONTAL_DOMINANCE = 1.25
 
-export function createHorizontalSwipeHandlers(onSwipeLeft, onSwipeRight) {
+export function createHorizontalSwipeHandlers(onSwipeLeft, onSwipeRight, isIgnoring = () => false) {
   let startPoint = null
 
   function pointFromTouch(touch) {
@@ -19,6 +19,10 @@ export function createHorizontalSwipeHandlers(onSwipeLeft, onSwipeRight) {
   function onTouchEnd(event) {
     const touch = event.changedTouches?.[0]
     if (!startPoint || !touch) return
+    if (isIgnoring()) {
+      startPoint = null
+      return
+    }
 
     const endPoint = pointFromTouch(touch)
     const deltaX = endPoint.x - startPoint.x

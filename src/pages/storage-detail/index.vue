@@ -34,9 +34,16 @@
       >
     </info-card>
     <view class="actions"
-      ><button class="outline-button" @tap="openReport">查看溯源</button
-      ><button class="primary-button" @tap="openConsult">发起定制</button></view
+      ><button class="primary-button" @tap="openReport">溯源报告</button
+      ><button class="primary-button" @tap="openConsult">发起咨询</button></view
     >
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
@@ -45,6 +52,10 @@ import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import InfoCard from "../../components/InfoCard.vue";
 import { getProduct } from "../../api/products";
+import { useContactBallDrag } from "../../utils/contactBallDrag";
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag();
 
 const product = ref({
   id: "",
@@ -154,7 +165,7 @@ function openConsult() {
   height: 330rpx;
   position: relative;
   border-radius: 12rpx;
-  background: #092f43;
+  background: linear-gradient(145deg, #e8f6ff, #cbeaff);
   display: flex;
   align-items: center;
   justify-content: center;

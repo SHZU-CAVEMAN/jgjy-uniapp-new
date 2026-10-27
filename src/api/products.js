@@ -29,16 +29,16 @@ export async function getProduct(productId) {
 
 export function downloadProductImage(url) {
   if (!url || url.startsWith('/static/') || url.startsWith('wxfile://')) {
-    return Promise.resolve(url || '/static/logo.png')
+    return Promise.resolve(url || '')
   }
   if (imageCache.has(url)) return imageCache.get(url)
   const task = new Promise((resolve) => {
     uni.downloadFile({
       url,
       success: ({ statusCode, tempFilePath }) => {
-        resolve(statusCode === 200 && tempFilePath ? tempFilePath : '/static/logo.png')
+        resolve(statusCode === 200 && tempFilePath ? tempFilePath : '')
       },
-      fail: () => resolve('/static/logo.png'),
+      fail: () => resolve(''),
     })
   })
   imageCache.set(url, task)

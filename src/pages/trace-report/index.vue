@@ -30,7 +30,14 @@
         <view v-for="height in chart" :key="height" :style="{ height: `${height}%` }" />
       </view><text class="chart-caption">近七日库内温湿度稳定</text>
     </info-card> -->
-    <button class="primary-button" @tap="goConsult">基于此产品发起定制</button>
+    <button class="primary-button" @tap="goConsult">基于此产品发起咨询</button>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
@@ -38,6 +45,10 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import InfoCard from '../../components/InfoCard.vue'
+import { useContactBallDrag } from '../../utils/contactBallDrag'
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag()
 
 const traceCode = ref('JGY-2026-0915-088')
 const chain = [{ label: '原料', value: '泸州糯高粱' }, { label: '酿造', value: '批次 2026-031' }, { label: '存储', value: '陶坛 B-12' }, { label: '质检', value: '合格 QZ-0921' }]

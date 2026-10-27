@@ -9,11 +9,10 @@
         ><text>{{ article.reads }} 阅读</text></view
       >
       <view class="lead">{{ article.summary }}</view>
-      <image
+      <async-image
         class="cover"
-        :src="article.image || '/static/logo.png'"
+        :src="article.image"
         mode="aspectFit"
-        @error="handleImageError"
       />
       <rich-text class="content" :nodes="article.content" />
       <text class="source">内容由酒谷酒业新闻中心发布</text>
@@ -51,7 +50,11 @@
           发表留言
         </button></view
       >
-      <view v-if="comments.length" class="comment-list">
+      <view v-if="commentsLoading" class="comment-skeleton-list">
+        <t-skeleton v-for="index in 2" :key="index" theme="paragraph" :row-col="commentSkeletonRows"
+          animation="gradient" loading />
+      </view>
+      <view v-else-if="comments.length" class="comment-list">
         <view
           v-for="comment in comments"
           :key="comment.id"
@@ -66,14 +69,26 @@
           >
         </view>
       </view>
-      <view v-else class="empty">还没有留言，来说两句吧</view>
+      <view v-else-if="!commentsLoading" class="empty">还没有留言，来说两句吧</view>
     </section>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { onLoad, onShareAppMessage, onShareTimeline, onShow } from "@dcloudio/uni-app";
+import AsyncImage from "../../components/AsyncImage.vue";
+import { useContactBallDrag } from "../../utils/contactBallDrag";
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag();
 import { getCurrentMiniappUser } from "../../api/auth";
 import { getNewsArticle } from "../../api/news";
 import {
@@ -94,6 +109,11 @@ const shareCount = ref(0);
 const shareReady = ref(false);
 const commentText = ref("");
 const comments = ref([]);
+const commentsLoading = ref(true);
+const commentSkeletonRows = [
+  { width: "40%", height: "24rpx" },
+  { width: "100%", height: "24rpx" },
+];
 
 async function refreshInteractions() {
   try {
@@ -142,10 +162,13 @@ async function toggleCollect() {
   });
 }
 async function refreshComments() {
+  commentsLoading.value = true;
   try {
     comments.value = await getArticleComments(article.value.id);
   } catch {
     comments.value = [];
+  } finally {
+    commentsLoading.value = false;
   }
 }
 async function submitComment() {
@@ -163,10 +186,6 @@ async function submitComment() {
     uni.showToast({ title: error.message || "留言失败，请稍后重试", icon: "none" });
   }
 }
-function handleImageError() {
-  article.value.image = "/static/logo.png";
-}
-
 async function refreshShareAuthorization() {
   shareReady.value = false;
   if (!uni.getStorageSync("auth-token")) return;
@@ -224,7 +243,7 @@ onShareAppMessage(() => {
   return {
     title: article.value.title,
     path: `/pages/article-detail/index?id=${article.value.id}`,
-    imageUrl: article.value.image || "/static/logo.png",
+    ...(article.value.image ? { imageUrl: article.value.image } : {}),
   };
 });
 onShareTimeline(() => {
@@ -232,7 +251,7 @@ onShareTimeline(() => {
   return {
     title: article.value.title,
     query: `id=${article.value.id}`,
-    imageUrl: article.value.image || "/static/logo.png",
+    ...(article.value.image ? { imageUrl: article.value.image } : {}),
   };
 });
 onShow(refreshShareAuthorization);

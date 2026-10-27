@@ -13,7 +13,14 @@
       ></scroll-view
     >
     <view class="news-swipe-area">
-    <view v-if="loading" class="empty">正在加载文章…</view>
+    <view v-if="loading" class="news-list">
+      <view v-for="index in 3" :key="index" class="news-skeleton">
+        <view class="news-skeleton-copy">
+          <t-skeleton theme="paragraph" :row-col="newsSkeletonRows" animation="gradient" loading />
+        </view>
+        <t-skeleton class="news-skeleton-image" theme="image" animation="gradient" loading />
+      </view>
+    </view>
     <view v-else-if="!filteredNews.length" class="empty">暂无已发布文章</view>
     <view v-else class="news-list">
       <view
@@ -30,16 +37,22 @@
             ><text>{{ item.reads }} 阅读</text></view
           ></view
         >
-        <image
+        <async-image
           class="news-image"
-          :src="item.image || '/static/logo.png'"
+          :src="item.image"
           mode="aspectFill"
           lazy-load
-          @error="item.image = '/static/logo.png'"
         />
       </view>
       <text class="footer">内容由企业新闻中心统一发布</text>
     </view>
+    </view>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
     </view>
   </view>
 </template>
@@ -47,13 +60,23 @@
 <script setup>
 import { computed, ref } from "vue";
 import { onLoad, onPullDownRefresh } from "@dcloudio/uni-app";
+import AsyncImage from "../../components/AsyncImage.vue";
 import { getNews } from "../../api/news";
 import { parseCompatibleDate } from "../../utils/platform";
 import { createHorizontalSwipeHandlers } from "../../utils/horizontalSwipe";
+import { useContactBallDrag } from "../../utils/contactBallDrag";
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag();
 
 const newsItems = ref([]);
 const activeCategory = ref("");
-const loading = ref(false);
+const loading = ref(true);
+const newsSkeletonRows = [
+  { width: "80%", height: "30rpx" },
+  { width: "100%", height: "24rpx" },
+  { width: "64%", height: "24rpx" },
+];
 const newsCategories = computed(() => [...new Set(newsItems.value.map((item) => item.category))]);
 const activeCategoryIndex = computed(() => newsCategories.value.indexOf(activeCategory.value));
 const activeCategoryAnchor = computed(() =>
@@ -149,6 +172,18 @@ onPullDownRefresh(async () => {
   gap: 24rpx;
   box-shadow: $card-shadow;
 }
+.news-skeleton {
+  margin-bottom: 22rpx;
+  padding: 28rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  box-shadow: $card-shadow;
+}
+.news-skeleton-copy { flex: 1; }
+.news-skeleton-image { width: 190rpx; height: 168rpx; flex-shrink: 0; }
 .news-copy {
   flex: 1;
   min-width: 0;

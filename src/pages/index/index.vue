@@ -8,8 +8,7 @@
             muted :controls="false" :show-center-play-btn="false" :show-play-btn="false"
             :show-fullscreen-btn="false" :enable-progress-gesture="false" object-fit="cover"
             @tap.stop="openBanner(banner)" @error="handleVideoError(banner)" />
-          <image v-else class="hero-image" :src="banner.image || banner.poster" mode="aspectFill"
-            @error="handleImageError(banner)" />
+          <async-image v-else class="hero-image" :src="banner.image || banner.poster" mode="aspectFill" />
           <view v-if="banner.type === 'video' && !banner.videoError" class="play-mark">▶</view>
         </swiper-item>
       </swiper>
@@ -43,13 +42,25 @@
       <text class="arrow">›</text>
     </view>
     <button class="primary-button" @tap="goConsult">发起咨询 <text>一对一专属服务 ›</text></button>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
+    </view>
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { onHide, onShow } from '@dcloudio/uni-app'
+import AsyncImage from '../../components/AsyncImage.vue'
 import SectionTitle from '../../components/SectionTitle.vue'
+import { useContactBallDrag } from '../../utils/contactBallDrag'
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag()
 
 const resourceBase = 'https://lzbjtjt.online/jgjy/resource'
 const defaultBannerImage = `${resourceBase}/6fc364b4e8082cdaea511d1d0fec14e0.jpg`
@@ -66,10 +77,10 @@ const banners = ref([
   },
 ])
 const businesses = [
-  { title: '原酒收储', description: '集中入库、分级、陈化老熟', icon: '储', theme: 'amber' },
+  { title: '原酒收储', description: '集中入库、分级、陈化老熟', icon: '储', theme: 'amber', route: '/pages/business/storage/index' },
   { title: '原酒销售', description: '平台集中对外销售', icon: '售', theme: 'red' ,route: 'product'},
-  { title: '技术服务', description: '提供技术咨询', icon: '技', theme: 'blue',  },
-  { title: '白酒金融', description: '面向白酒产业链的产业金融服务', icon: '金', theme: 'green' },
+  { title: '技术服务', description: '提供技术咨询', icon: '技', theme: 'blue', route: '/pages/business/technology/index' },
+  { title: '白酒金融', description: '面向白酒产业链的产业金融服务', icon: '金', theme: 'green', route: '/pages/business/finance/index' },
 ]
 
 function handleBannerChange(event) {
@@ -77,9 +88,6 @@ function handleBannerChange(event) {
   const videoContext = uni.createVideoContext('home-banner-video')
   if (banners.value[currentBanner.value]?.type === 'video') videoContext.play()
   else videoContext.pause()
-}
-function handleImageError(banner) {
-  if (banner.image !== defaultBannerImage) banner.image = defaultBannerImage
 }
 function handleVideoError(banner) { banner.videoError = true }
 // 打开轮播图预览
@@ -95,11 +103,16 @@ function openBanner(banner) {
 }
 function switchTab(url) { uni.switchTab({ url }) }
 function goProducts(segment = 'product') {
-  uni.setStorageSync('product-segment', segment)
+  if (segment === 'storage') {
+    uni.setStorageSync('trace-segment', 'storage')
+    switchTab('/pages/trace/index')
+    return
+  }
   switchTab('/pages/products/index')
 }
 function handleBusiness(item) {
   if (item.route === 'product') return goProducts('product')
+  if (item.route) return uni.navigateTo({ url: item.route })
   goConsult(item.title)
 }
 function goConsult(type = '') { uni.navigateTo({ url: `/pages/consult/index?type=${encodeURIComponent(type)}` }) }
@@ -200,10 +213,10 @@ onHide(() => {
 .storage-card {
   margin: 26rpx 24rpx 0;
   padding: 32rpx;
-  color: #fff;
+  color: $text-title;
   border-radius: 16rpx;
-  background: linear-gradient(135deg, $brand-primary, $brand-deep);
-  box-shadow: 0 12rpx 30rpx rgba(2, 132, 199, .2);
+  background: #fff;
+  box-shadow: $card-shadow;
 }
 
 .storage-head {
@@ -214,7 +227,7 @@ onHide(() => {
 }
 
 .storage-link {
-  color: #bae6fd;
+  color: $brand-primary;
 }
 
 .storage-total {
@@ -232,14 +245,14 @@ onHide(() => {
   display: block;
   margin-top: 10rpx;
   font-size: 24rpx;
-  opacity: .82;
+  color: $text-muted;
 }
 
 .storage-trace {
   margin-top: 24rpx;
   padding: 20rpx;
   border-radius: 12rpx;
-  background: rgba(255, 255, 255, .13);
+  background: #edf8ff;
   display: flex;
   justify-content: space-between;
   font-size: 24rpx;

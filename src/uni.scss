@@ -15,26 +15,26 @@
 /* 颜色变量 */
 
 /* 行为相关颜色 */
-$uni-color-primary: #007aff;
-$uni-color-success: #4cd964;
-$uni-color-warning: #f0ad4e;
-$uni-color-error: #dd524d;
+$uni-color-primary: #218fe5;
+$uni-color-success: #42a982;
+$uni-color-warning: #e9b65d;
+$uni-color-error: #d95b62;
 
 /* 文字基本颜色 */
-$uni-text-color: #333; // 基本色
+$uni-text-color: #234b6b; // 基本色
 $uni-text-color-inverse: #fff; // 反色
-$uni-text-color-grey: #999; // 辅助灰色，如加载更多的提示信息
-$uni-text-color-placeholder: #808080;
-$uni-text-color-disable: #c0c0c0;
+$uni-text-color-grey: #89a4b8; // 辅助灰色，如加载更多的提示信息
+$uni-text-color-placeholder: #9cb3c5;
+$uni-text-color-disable: #bdceda;
 
 /* 背景颜色 */
 $uni-bg-color: #fff;
-$uni-bg-color-grey: #f8f8f8;
-$uni-bg-color-hover: #f1f1f1; // 点击状态颜色
+$uni-bg-color-grey: #f2faff;
+$uni-bg-color-hover: #e6f5ff; // 点击状态颜色
 $uni-bg-color-mask: rgba(0, 0, 0, 0.4); // 遮罩颜色
 
 /* 边框颜色 */
-$uni-border-color: #c8c7cc;
+$uni-border-color: #d7eaf5;
 
 /* 尺寸变量 */
 
@@ -76,15 +76,15 @@ $uni-color-paragraph: #3f536e; // 文章段落颜色
 $uni-font-size-paragraph: 15px;
 
 /* 企业主题：页面仅引用语义变量，便于统一换肤。 */
-$brand-primary: #087eaa;
-$brand-deep: #073b52;
-$brand-accent: #c99524;
-$app-bg: #f4f6f8;
-$text-title: #173347;
-$text-body: #475569;
-$text-muted: #8b9aaa;
-$line-color: #e5ebf0;
-$card-shadow: 0 4rpx 18rpx rgba(23, 51, 71, .07);
+$brand-primary: #218fe5;
+$brand-deep: #1269b2;
+$brand-accent: #e9b65d;
+$app-bg: #eff8fe;
+$text-title: #174b78;
+$text-body: #456681;
+$text-muted: #89a4b8;
+$line-color: #dcecf6;
+$card-shadow: 0 8rpx 24rpx rgba(31, 132, 196, .11);
 
 /* 移动端视觉尺度 */
 $font-caption: 22rpx;

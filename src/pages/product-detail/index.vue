@@ -1,11 +1,12 @@
 <template>
   <view class="page-shell">
     <view class="visual"
-      ><image
+      ><async-image
+        class="detail-image"
         :src="imageSource"
         mode="aspectFill"
         lazy-load
-        @error="imageSource = '/static/logo.png'"
+        :pending="imagePending"
       /><view class="visual-label">泸州产区 · 年份原酒</view></view
     >
     <view class="headline"
@@ -50,8 +51,15 @@
         <text class="collect-icon">{{ collected ? "★" : "☆" }}</text
         ><text>{{ collected ? "已收藏" : "收藏" }}</text>
       </button>
-      <button class="outline-button" @tap="openTrace">查看溯源</button>
+      <button class="primary-button" @tap="openTrace">溯源报告</button>
       <button class="primary-button" @tap="openConsult">发起咨询</button>
+    </view>
+    <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
+      @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
+      @touchcancel="onContactBallTouchEnd">
+      <t-icon name="service" size="44rpx" color="#fff" />
+      <text>客服</text>
+      <button class="contact-ball-trigger" open-type="contact" aria-label="在线客服" />
     </view>
   </view>
 </template>
@@ -59,9 +67,14 @@
 <script setup>
 import { computed, ref } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
+import AsyncImage from "../../components/AsyncImage.vue";
 import InfoCard from "../../components/InfoCard.vue";
 import { downloadProductImage, getProduct } from "../../api/products";
 import { getMyFavorites, toggleFavorite } from "../../api/engagement";
+import { useContactBallDrag } from "../../utils/contactBallDrag";
+
+const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
+  useContactBallDrag();
 
 const product = ref({
   id: "",
@@ -76,7 +89,8 @@ const product = ref({
   fill: 0,
   zone: "",
 });
-const imageSource = ref("/static/logo.png");
+const imageSource = ref("");
+const imagePending = ref(true);
 const collected = ref(false);
 const typeLabel = computed(
   () =>
@@ -88,8 +102,10 @@ onLoad(async ({ id }) => {
     imageSource.value = await downloadProductImage(
       product.value.detailImageUrl || product.value.thumbnailUrl
     );
+    imagePending.value = false;
     await refreshCollected();
   } catch (error) {
+    imagePending.value = false;
     uni.showModal({
       title: "产品加载失败",
       content: error.message || "请稍后重试",
@@ -154,10 +170,9 @@ function openConsult() {
   overflow: hidden;
   background: #d7e6ea;
 }
-.visual image {
+.visual .detail-image {
   width: 100%;
   height: 100%;
-  display: block;
 }
 .visual-label {
   position: absolute;
