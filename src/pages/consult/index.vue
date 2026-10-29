@@ -25,26 +25,25 @@
           />
         </t-radio-group>
       </view>
-      <t-input v-model:value="form.name" class="form-input" borderless maxlength="30" placeholder="请输入您的名称">
-        <template #label><text class="field-label required">客户名称</text></template>
-      </t-input>
-      <t-input v-model:value="form.phone" class="form-input" borderless type="number" maxlength="11" placeholder="请输入手机号码">
-        <template #label><text class="field-label required">联系电话</text></template>
-      </t-input>
-      <t-cell
-        class="category-cell"
-        t-class-center="category-title"
-        t-class-note="category-note"
-        :note="selectedDemandName || '请选择需求类型'"
-        arrow
-        @click="demandPickerVisible = true"
-      >
-        <template #title><text class="field-label required">需求类型</text></template>
-      </t-cell>
+      <view class="form-row">
+        <t-input v-model:value="form.name" class="form-input" borderless maxlength="30" placeholder="请输入您的名称">
+          <template #label><text class="field-label required">客户名称</text></template>
+        </t-input>
+      </view>
+      <view class="form-row">
+        <t-input v-model:value="form.phone" class="form-input" borderless type="number" maxlength="11" placeholder="请输入手机号码">
+          <template #label><text class="field-label required">联系电话</text></template>
+        </t-input>
+      </view>
+      <view class="form-row demand-row" @tap="demandPickerVisible = true">
+        <text class="field-label required">需求类型</text>
+        <text class="demand-value" :class="{ 'is-placeholder': !selectedDemandName }">{{ selectedDemandName || '请选择需求类型' }}</text>
+        <t-icon name="chevron-right" size="32rpx" color="#9cb3c5" />
+      </view>
       <t-picker
         v-model:visible="demandPickerVisible"
         :value="selectedDemandValue"
-        :visible-item-count="3"
+        :visible-item-count="4"
         title="选择需求类型"
         cancel-btn="取消"
         confirm-btn="确定"
@@ -52,12 +51,16 @@
       >
         <t-picker-item :options="demandOptions" />
       </t-picker>
-      <t-input v-model:value="form.region" class="form-input" borderless maxlength="50" placeholder="请输入省市地区（选填）">
-        <template #label><text class="field-label">所在地区</text></template>
-      </t-input>
-      <t-input v-model:value="form.budget" class="form-input" borderless maxlength="30" placeholder="如 10 万元（选填）">
-        <template #label><text class="field-label">预算金额</text></template>
-      </t-input>
+      <view class="form-row">
+        <t-input v-model:value="form.region" class="form-input" borderless maxlength="50" placeholder="请输入省市地区（选填）">
+          <template #label><text class="field-label">所在地区</text></template>
+        </t-input>
+      </view>
+      <view class="form-row">
+        <t-input v-model:value="form.budget" class="form-input" borderless maxlength="30" placeholder="如 10 万元（选填）">
+          <template #label><text class="field-label">预算金额</text></template>
+        </t-input>
+      </view>
       <view class="remark-field">
         <text class="field-label">需求说明</text>
         <t-textarea
@@ -279,7 +282,7 @@ async function submit() {
   margin-right: 5rpx;
   color: #b82d45;
 }
-.form-input {
+.form-row {
   border-bottom: 1rpx solid $line-color;
 }
 .form-input :deep(.t-input__label) {
@@ -288,20 +291,34 @@ async function submit() {
   max-width: 160rpx;
   flex: 0 0 160rpx;
 }
-.category-cell {
-  border-bottom: 1rpx solid $line-color;
+.demand-row {
+  min-height: 112rpx;
+  padding-left: 32rpx;
+  display: flex;
+  align-items: center;
 }
-.category-cell :deep(.category-title) {
+.demand-row > .field-label {
+  width: 160rpx;
   flex: 0 0 160rpx;
   margin-right: 32rpx;
 }
-.category-cell :deep(.category-note) {
-  flex: 1 1 auto;
-  justify-content: flex-start;
-  text-align: left;
+.demand-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: $text-title;
+  font-size: 32rpx;
+  line-height: 48rpx;
+}
+.demand-value.is-placeholder {
+  color: #9cb3c5;
+  font-size: 28rpx;
 }
 .remark-field {
   padding: 32rpx 0 8rpx 32rpx;
+  border-bottom: 1rpx solid $line-color;
 }
 .remark-input {
   margin-top: 12rpx;
