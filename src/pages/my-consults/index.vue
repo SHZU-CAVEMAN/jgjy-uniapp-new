@@ -8,7 +8,7 @@
         </view>
       </template>
       <view v-for="record in records" :key="record.id" class="record-card">
-        <view class="record-head"><text>{{ record.type }}</text><text class="status">{{ record.status }}</text></view>
+        <view class="record-head"><text>{{ record.type }}</text><text class="status" :class="{ 'is-done': record.status === '已处理' }">{{ record.status }}</text></view>
         <view class="record-row"><text>提交时间</text><text>{{ record.date }}</text></view>
         <view class="record-row"><text>联系人</text><text>{{ record.name }} · {{ maskPhone(record.phone) }}</text></view>
         <view v-if="record.region" class="record-row"><text>所在地区</text><text>{{ record.region }}</text></view>
@@ -132,6 +132,11 @@ onShow(async () => {
   background: #fff4dc;
   font-size: 21rpx;
   font-weight: 700;
+}
+
+.status.is-done {
+  color: #1f7a52;
+  background: #e6f6ee;
 }
 
 .record-row {
