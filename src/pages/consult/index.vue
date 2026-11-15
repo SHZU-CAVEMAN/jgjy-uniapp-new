@@ -11,10 +11,9 @@
       <view class="customer-type-row">
         <text class="field-label required">客户类型</text>
         <t-radio-group
-          :value="form.customerType"
+          v-model:value="form.customerType"
           borderless
           custom-style="display:flex;flex:1;align-items:center;justify-content:space-between;gap:12rpx"
-          @change="changeCustomerType"
         >
           <t-radio
             v-for="type in customerTypes"
@@ -169,17 +168,14 @@ onUnload(() => {
 });
 
 function changeDemand(event) {
-  const selectedId = event.value?.[0];
+  const selectedId = event?.value?.[0] ?? event?.detail?.value?.[0];
   demandIndex.value = demandTypes.value.findIndex(
     (item) => String(item.id) === String(selectedId)
   );
 }
-function changeCustomerType(event) {
-  form.customerType = event.value;
-}
 async function submit() {
-  const name = form.name.trim();
-  const phone = form.phone.trim();
+  const name = String(form.name || "").trim();
+  const phone = String(form.phone || "").trim();
   if (!name)
     return uni.showToast({ title: "请输入客户名称", icon: "none" });
   if (!/^1\d{10}$/.test(phone))
@@ -193,11 +189,13 @@ async function submit() {
     await submitConsultation({
       name,
       phone,
-      categoryId: demandTypes.value[demandIndex.value].id,
-      customerType: form.customerType,
-      region: form.region.trim(),
-      budget: form.budget.trim(),
-      remark: form.remark.trim(),
+      categoryId: Number(demandTypes.value[demandIndex.value].id),
+      customerType: customerTypes.includes(form.customerType)
+        ? form.customerType
+        : "个人",
+      region: String(form.region || "").trim(),
+      budget: String(form.budget || "").trim(),
+      remark: String(form.remark || "").trim(),
     });
     uni.showModal({
       title: "提交成功",

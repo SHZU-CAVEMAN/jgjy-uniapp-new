@@ -25,7 +25,7 @@
     </view>
     <view class="preview" @tap="openReport('JGY-2026-0915-088')"
       ><text class="preview-title">示例报告预览</text
-      ><text>原料产地 → 酿造批次 → 存储罐体 → 质检报告 → 定制信息</text
+      ><text>原料产地 → 生产时间 → 存储罐体 → 质检报告 → 定制信息</text
       ><text class="preview-link">查看完整报告 ›</text></view
     >
     <section-title title="溯源流程" />
@@ -44,8 +44,8 @@
 
     <template v-else>
       <view class="summary">
-        <view><text>11,440</text><text>总库存(吨)</text></view>
-        <view><text>76</text><text>酒体品种</text></view>
+        <view><text>50,234</text><text>总库存(吨)</text></view>
+        <view><text>897</text><text>酒体品种</text></view>
         <view><text>3</text><text>储存区域</text></view>
       </view>
       <section-title title="罐体列表" />
@@ -59,7 +59,7 @@
           </view>
         </template>
         <view v-else v-for="product in storageProducts" :key="product.id" class="tank" @tap="openStorage(product)">
-          <view class="tank-mark">{{ product.zone.includes('钢') ? '钢' : '陶' }}</view>
+          <view class="tank-mark">{{ product.zone.includes('罐') ? '罐' : '陶' }}</view>
           <view class="tank-content"><text class="tank-name">{{ product.tank }} · {{ product.name }}</text><text
               class="tank-meta">{{ product.zone }} · 实时监测中</text>
             <view class="progress">
@@ -138,7 +138,7 @@ onShow(() => {
 });
 
 const traceCode = ref("JGY-2026-0915-088");
-const steps = ["原料溯源", "酿造批次", "储酒罐体", "质检报告"];
+const steps = ["原料溯源", "生产时间", "储酒罐体", "质检报告"];
 
 function scan() {
   scanTraceCode((result) => {

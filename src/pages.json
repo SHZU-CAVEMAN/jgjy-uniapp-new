@@ -22,6 +22,7 @@
 		{ "path": "pages/business/technology/index", "style": { "navigationBarTitleText": "技术服务" } },
 		{ "path": "pages/business/finance/index", "style": { "navigationBarTitleText": "白酒金融" } },
 		{ "path": "pages/trace-report/index", "style": { "navigationBarTitleText": "溯源报告" } },
+		{ "path": "pages/notice/index", "style": { "navigationBarTitleText": "温馨提示" } },
 		{ "path": "pages/consult/index", "style": { "navigationBarTitleText": "发起咨询" } },
 		{ "path": "pages/about/index", "style": { "navigationBarTitleText": "关于我们" } }
 	],

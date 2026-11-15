@@ -11,8 +11,8 @@
       </view>
     </view>
     <view class="strengths">
-      <view><text>11,440</text><text>吨储酒</text></view>
-      <view><text>76</text><text>酒体品种</text></view>
+      <view><text>50,234</text><text>吨储酒</text></view>
+      <view><text>897</text><text>酒体品种</text></view>
       <view><text>全链路</text><text>数字化溯源</text></view>
     </view>
     <section-title title="企业实力" />

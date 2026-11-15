@@ -21,8 +21,8 @@
 
     <view class="storage-card" @tap="goProducts('storage')">
       <view class="storage-head"><text>总库存</text><text class="storage-link">查看全部 ›</text></view>
-      <view class="storage-total"><text class="storage-number">11,440</text><text> 吨</text></view>
-      <text class="storage-caption">76 个酒体品种</text>
+      <view class="storage-total"><text class="storage-number">50,234</text><text> 吨</text></view>
+      <text class="storage-caption">897 个酒体品种</text>
       <view class="storage-trace"><text>陶坛 B-12 · 十年窖香调味酒</text><text>可溯源 ›</text></view>
     </view>
 
@@ -77,10 +77,10 @@ const banners = ref([
   },
 ])
 const businesses = [
-  { title: '原酒收储', description: '集中入库、分级、陈化老熟', icon: '储', theme: 'amber', route: '/pages/business/storage/index' },
+  { title: '原酒收储', description: '集中入库、分级、陈化老熟', icon: '储', theme: 'amber', route: 'storage' },
   { title: '原酒销售', description: '平台集中对外销售', icon: '售', theme: 'red' ,route: 'product'},
   { title: '技术服务', description: '提供技术咨询', icon: '技', theme: 'blue', route: '/pages/business/technology/index' },
-  { title: '白酒金融', description: '面向白酒产业链的产业金融服务', icon: '金', theme: 'green', route: '/pages/business/finance/index' },
+  { title: '白酒金融', description: '面向白酒产业链的产业金融服务', icon: '金', theme: 'green', route: 'notice' },
 ]
 
 function handleBannerChange(event) {
@@ -112,8 +112,15 @@ function goProducts(segment = 'product') {
 }
 function handleBusiness(item) {
   if (item.route === 'product') return goProducts('product')
+  if (item.route === 'storage') return goProducts('storage')
+  if (item.route === 'notice') return goNotice(item.title)
   if (item.route) return uni.navigateTo({ url: item.route })
   goConsult(item.title)
+}
+function goNotice(title) {
+  uni.navigateTo({
+    url: `/pages/notice/index?title=${encodeURIComponent(title)}&message=${encodeURIComponent('当前功能还未上线~')}`,
+  })
 }
 function goConsult(type = '') { uni.navigateTo({ url: `/pages/consult/index?type=${encodeURIComponent(type)}` }) }
 function goNews() { uni.navigateTo({ url: '/pages/news/index' }) }

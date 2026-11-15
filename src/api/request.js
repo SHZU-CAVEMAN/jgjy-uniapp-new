@@ -19,7 +19,14 @@ export function apiRequest(path, options = {}) {
       header: options.token ? { Authorization: `Bearer ${options.token}` } : {},
       success: ({ statusCode, data }) => {
         if (statusCode < 200 || statusCode >= 300) {
-          return reject(new Error(data?.message || '服务端请求失败'))
+          const details = data?.data
+          const detailText =
+            details && typeof details === 'object'
+              ? Object.entries(details)
+                  .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join('; ') : value}`)
+                  .join('；')
+              : ''
+          return reject(new Error(`${data?.message || '服务端请求失败'}${detailText ? `（${detailText}）` : ''}`))
         }
         resolve(data?.data || data || {})
       },
