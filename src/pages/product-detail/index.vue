@@ -18,12 +18,8 @@
         >¥{{ product.price }}<text> / 吨（支持少量定制）</text></view
       ></view
     >
-    <info-card title="产品规格"
-      ><view class="spec"
-        ><text>原料</text><text>高粱、小麦、大米、糯米、玉米</text></view
-      ><view class="spec"><text>酒精度</text><text>53%vol</text></view
-      ><view class="spec"
-        ><text>容量规格</text><text>500ml / 2.5L / 坛装定制</text></view
+    <info-card title="产品信息"
+      ><view class="spec"><text>酒精度</text><text>{{ product.alcohol || '-' }}</text></view
       ><view class="spec"
         ><text>品质特征</text><text>{{ product.description }}</text></view
       ></info-card
@@ -88,6 +84,7 @@ const product = ref({
   tons: 0,
   fill: 0,
   zone: "",
+  alcohol: "",
 });
 const imageSource = ref("");
 const imagePending = ref(true);

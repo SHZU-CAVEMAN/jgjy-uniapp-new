@@ -3,7 +3,7 @@
     <view class="report-head"><text>酒体溯源报告</text><text>{{ traceCode }}</text><text class="verified">已验证</text></view>
     <info-card title="定制信息">
       <view class="row"><text>定制客户</text><text>张先生（尾号 6688）</text></view>
-      <view class="row"><text>定制产品</text><text>八年窖藏浓香原酒</text></view>
+      <view class="row"><text>定制产品</text><text>酒谷1号</text></view>
       <view class="row"><text>封坛日期</text><text>2026-09-15</text></view>
       <view class="row"><text>封坛寄语</text><text>岁月沉淀 · 情谊长存</text></view>
     </info-card>
@@ -51,7 +51,7 @@ const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContact
   useContactBallDrag()
 
 const traceCode = ref('JGY-2026-0915-088')
-const chain = [{ label: '原料', value: '泸州糯高粱' }, { label: '酿造', value: '批次 2026-031' }, { label: '存储', value: '陶坛 B-12' }, { label: '质检', value: '合格 QZ-0921' }]
+const chain = [{ label: '原料', value: '单粮' }, { label: '酿造', value: '批次 2026-031' }, { label: '存储', value: 'TTA001-A003' }, { label: '质检', value: '合格 QZ-0921' }]
 const chart = [38, 54, 46, 68, 61, 76, 70]
 onLoad(({ code }) => { if (code) traceCode.value = decodeURIComponent(code) })
 function goConsult() { uni.navigateTo({ url: '/pages/consult/index?type=定制酒' }) }
