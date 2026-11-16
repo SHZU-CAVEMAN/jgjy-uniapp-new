@@ -99,6 +99,7 @@ import {
 } from "../../api/auth";
 import { getMyConsultations } from "../../api/consultations";
 import { getMyComments, getMyFavorites } from "../../api/engagement";
+import { getMyTraces } from "../../api/trace";
 
 const cachedProfile = uni.getStorageSync("user-profile") || {};
 const hasAuthToken = Boolean(uni.getStorageSync("auth-token"));
@@ -129,7 +130,7 @@ const quickEntries = reactive([
   { label: "我的收藏", short: "藏", count: 0, route: "/pages/favorites/index" },
   { label: "我的咨询", short: "询", count: 0, route: "/pages/my-consults/index" },
   { label: "我的留言", short: "言", count: 0, route: "/pages/my-comments/index" },
-  { label: "我的溯源", short: "溯", trace: true },
+  { label: "我的溯源", short: "溯", count: 0, trace: true },
 ]);
 function persistUser() {
   uni.setStorageSync("user-profile", { ...user });
@@ -258,7 +259,7 @@ function requireLogin() {
 function openEntry(item) {
   if (!requireLogin()) return;
   if (item.route) return uni.navigateTo({ url: item.route });
-  if (item.trace) return uni.switchTab({ url: "/pages/trace/index" });
+  if (item.trace) return uni.navigateTo({ url: "/pages/my-traces/index" });
 }
 function goConsult() {
   uni.navigateTo({ url: "/pages/consult/index" });
@@ -275,10 +276,12 @@ async function refreshRemoteCounts() {
     getMyFavorites().then((value) => value, () => null),
     getMyConsultations().then((value) => value, () => null),
     getMyComments().then((value) => value, () => null),
+    getMyTraces().then((value) => value, () => null),
   ]);
   if (results[0] !== null) quickEntries[0].count = results[0].length;
   if (results[1] !== null) quickEntries[1].count = results[1].length;
   if (results[2] !== null) quickEntries[2].count = results[2].length;
+  if (results[3] !== null) quickEntries[3].count = results[3].length;
 }
 async function restoreLogin() {
   if (!uni.getStorageSync("auth-token")) return;

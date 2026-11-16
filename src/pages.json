@@ -13,6 +13,7 @@
 		{ "path": "pages/favorites/index", "style": { "navigationBarTitleText": "我的收藏" } },
 		{ "path": "pages/my-comments/index", "style": { "navigationBarTitleText": "我的留言" } },
 		{ "path": "pages/my-consults/index", "style": { "navigationBarTitleText": "我的咨询" } },
+		{ "path": "pages/my-traces/index", "style": { "navigationBarTitleText": "我的溯源" } },
 		{ "path": "pages/news/index", "style": { "navigationBarTitleText": "企业动态", "enablePullDownRefresh": true } },
 		{ "path": "pages/article-detail/index", "style": { "navigationBarTitleText": "文章详情" } },
 		{ "path": "pages/video-player/index", "style": { "navigationBarTitleText": "视频播放", "navigationBarTextStyle": "white", "navigationBarBackgroundColor": "#000000", "backgroundColor": "#000000" } },

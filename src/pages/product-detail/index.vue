@@ -27,8 +27,6 @@
     <info-card title="储酒数据 · 可溯源" @tap="openStorage"
       ><view class="spec"
         ><text>存储区域</text><text>{{ product.zone }} ›</text></view
-      ><view class="spec"
-        ><text>对应罐体</text><text>{{ product.tank }} ›</text></view
       ><view class="storage-link"
         >查看酒库实时数据与罐体详情 <text>›</text></view
       ></info-card
@@ -226,6 +224,10 @@ function openConsult() {
 }
 .spec:last-child {
   border: 0;
+}
+.spec text:first-child {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .spec text:last-child {
   color: $text-title;

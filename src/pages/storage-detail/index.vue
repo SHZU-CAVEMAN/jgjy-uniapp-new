@@ -4,13 +4,13 @@
       ><text>{{ product.tank }} · {{ product.name }}</text
       ><text>{{ product.zone }} · 实时监测中</text></view
     >
-    <info-card title="罐体储酒信息"
+    <info-card title="储酒信息"
       ><view v-for="row in details" :key="row.label" class="row"
         ><text>{{ row.label }}</text
         ><text>{{ row.value }}</text></view
       ></info-card
     >
-    <info-card title="酒库实时数据"
+    <info-card title="酒库环境"
       ><view class="metrics"
         ><view v-for="item in metrics" :key="item.label"
           ><text>{{ item.value }}</text
@@ -18,7 +18,7 @@
         ></view
       ></info-card
     >
-    <info-card title="酒缸数据模型">
+    <!-- <info-card title="酒缸数据模型">
       <view class="jar-stage"
         ><text class="model-status">DATA MODEL · LIVE</text
         ><view class="jar"
@@ -32,7 +32,7 @@
           >液位 {{ product.fill }}% · {{ product.tons }} 吨</text
         ></view
       >
-    </info-card>
+    </info-card> -->
     <view class="actions"
       ><button class="primary-button" @tap="openReport">溯源报告</button
       ><button class="primary-button" @tap="openConsult">发起咨询</button></view
@@ -67,9 +67,7 @@ const product = ref({
   zone: "",
 });
 const details = computed(() => [
-  { label: "罐体编号", value: product.value.tankCode },
   { label: "储酒量", value: `${product.value.tons} 吨` },
-  { label: "装载率", value: `${product.value.fill}%` },
   { label: "存储区域", value: product.value.zone },
   { label: "关联产品", value: product.value.name },
 ]);

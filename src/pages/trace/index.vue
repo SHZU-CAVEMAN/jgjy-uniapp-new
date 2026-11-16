@@ -23,8 +23,9 @@
       <button class="scan-button" aria-label="扫码" @tap="scan">扫码</button>
       <button class="query-button" @tap="queryTrace">查询</button>
     </view>
-    <view class="preview" @tap="openReport('JGY-2026-0915-088')"
+    <view class="preview" @tap="openReport('JX-20260801-000001')"
       ><text class="preview-title">示例报告预览</text
+      ><text class="preview-code">JX-20260801-000001</text
       ><text>原料产地 → 生产时间 → 存储罐体 → 质检报告 → 定制信息</text
       ><text class="preview-link">查看完整报告 ›</text></view
     >
@@ -137,7 +138,7 @@ onShow(() => {
   loadProducts();
 });
 
-const traceCode = ref("JGY-2026-0915-088");
+const traceCode = ref("JX-20260801-000001");
 const steps = ["原料溯源", "生产时间", "储酒罐体", "质检报告"];
 
 function scan() {
@@ -196,6 +197,11 @@ function goConsult() {
 .query-card input {
   flex: 1;
   min-width: 0;
+  height: 76rpx;
+  padding: 0 18rpx;
+  border: 1rpx dashed $brand-primary;
+  border-radius: 10rpx;
+  background: #f4fbfd;
   font-size: 26rpx;
 }
 .scan-button,
@@ -233,6 +239,13 @@ function goConsult() {
   color: $text-title;
   font-size: 30rpx;
   font-weight: 700;
+}
+.preview-code {
+  margin-bottom: 6rpx;
+  color: $brand-primary;
+  font-size: 26rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
 }
 .preview-link {
   margin-top: 8rpx;

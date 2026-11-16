@@ -23,7 +23,7 @@
         </view>
       </info-card>
     </template>
-    <button class="primary-button" @tap="goConsult">基于此产品发起咨询</button>
+    <button class="primary-button" @tap="goConsult">发起咨询</button>
     <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
       @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
       @touchcancel="onContactBallTouchEnd">
@@ -68,7 +68,7 @@ async function loadReport() {
     report.value = data
     chain.value = [
       { label: '原料', value: data.rawMaterial || '-' },
-      { label: '酿造', value: data.batch || '-' },
+      { label: '酿造', value: data.productionDate || '-' },
       { label: '存储', value: data.stockName || data.stockCode || '-' },
       { label: '质检', value: data.inspectionNo || '-' },
     ]
