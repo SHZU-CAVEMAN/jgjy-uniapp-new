@@ -1,35 +1,28 @@
 <template>
   <view class="page-shell safe-bottom">
-    <view class="report-head"><text>酒体溯源报告</text><text>{{ traceCode }}</text><text class="verified">已验证</text></view>
-    <info-card title="定制信息">
-      <view class="row"><text>定制客户</text><text>张先生（尾号 6688）</text></view>
-      <view class="row"><text>定制产品</text><text>酒谷1号</text></view>
-      <view class="row"><text>封坛日期</text><text>2026-09-15</text></view>
-      <view class="row"><text>封坛寄语</text><text>岁月沉淀 · 情谊长存</text></view>
-    </info-card>
-    <info-card title="溯源链路">
-      <view class="chain">
-        <view v-for="(item, index) in chain" :key="item.label" class="chain-item">
-          <view class="chain-main">
-            <view class="chain-marker">
-              <view class="chain-icon">{{ index + 1 }}</view><text v-if="index < chain.length - 1"
-                class="chain-arrow">↓</text>
-            </view><text class="chain-label">{{ item.label }}</text>
-          </view><text class="chain-value">{{ item.value }}</text>
+    <view class="report-head"><text>酒体溯源报告</text><text>{{ traceCode }}</text><text v-if="report" class="verified">已验证</text></view>
+    <view v-if="loading" class="state">加载中…</view>
+    <view v-else-if="errorText" class="state">{{ errorText }}</view>
+    <template v-else>
+      <info-card title="溯源信息">
+        <view class="row"><text>定制客户</text><text>{{ report.customer || '-' }}</text></view>
+        <view class="row"><text>定制产品</text><text>{{ report.productName || '-' }}</text></view>
+        <view class="row"><text>定制日期</text><text>{{ report.sealedDate || '-' }}</text></view>
+        <view v-if="report.remark" class="row"><text>备注</text><text>{{ report.remark }}</text></view>
+      </info-card>
+      <info-card title="溯源链路">
+        <view class="chain">
+          <view v-for="(item, index) in chain" :key="item.label" class="chain-item">
+            <view class="chain-main">
+              <view class="chain-marker">
+                <view class="chain-icon">{{ index + 1 }}</view><text v-if="index < chain.length - 1"
+                  class="chain-arrow">↓</text>
+              </view><text class="chain-label">{{ item.label }}</text>
+            </view><text class="chain-value">{{ item.value }}</text>
+          </view>
         </view>
-      </view>
-    </info-card>
-
-    <!-- <info-card title="储酒数据">
-      <view class="metrics">
-        <view><text>11,440</text><text>酒库总量(吨)</text></view>
-        <view><text>3,280</text><text>陶坛区(吨)</text></view>
-        <view><text>B-12</text><text>对应罐体</text></view>
-      </view>
-      <view class="chart">
-        <view v-for="height in chart" :key="height" :style="{ height: `${height}%` }" />
-      </view><text class="chart-caption">近七日库内温湿度稳定</text>
-    </info-card> -->
+      </info-card>
+    </template>
     <button class="primary-button" @tap="goConsult">基于此产品发起咨询</button>
     <view class="contact-ball" :style="contactBallStyle" @touchstart="onContactBallTouchStart"
       @touchmove.stop.prevent="onContactBallTouchMove" @touchend="onContactBallTouchEnd"
@@ -45,15 +38,49 @@
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import InfoCard from '../../components/InfoCard.vue'
+import { getTraceReport } from '../../api/trace'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
 
-const traceCode = ref('JGY-2026-0915-088')
-const chain = [{ label: '原料', value: '单粮' }, { label: '酿造', value: '批次 2026-031' }, { label: '存储', value: 'TTA001-A003' }, { label: '质检', value: '合格 QZ-0921' }]
-const chart = [38, 54, 46, 68, 61, 76, 70]
-onLoad(({ code }) => { if (code) traceCode.value = decodeURIComponent(code) })
+const traceCode = ref('')
+const report = ref(null)
+const loading = ref(true)
+const errorText = ref('')
+const chain = ref([])
+
+onLoad(({ code }) => {
+  traceCode.value = code ? decodeURIComponent(code) : ''
+  loadReport()
+})
+
+async function loadReport() {
+  if (!traceCode.value) {
+    loading.value = false
+    errorText.value = '缺少溯源码'
+    return
+  }
+  loading.value = true
+  errorText.value = ''
+  try {
+    const data = await getTraceReport(traceCode.value)
+    report.value = data
+    chain.value = [
+      { label: '原料', value: data.rawMaterial || '-' },
+      { label: '酿造', value: data.batch || '-' },
+      { label: '存储', value: data.stockName || data.stockCode || '-' },
+      { label: '质检', value: data.inspectionNo || '-' },
+    ]
+  } catch (error) {
+    report.value = null
+    chain.value = []
+    errorText.value = error.message || '溯源记录加载失败'
+  } finally {
+    loading.value = false
+  }
+}
+
 function goConsult() { uni.navigateTo({ url: '/pages/consult/index?type=定制酒' }) }
 </script>
 
@@ -90,6 +117,16 @@ function goConsult() { uni.navigateTo({ url: '/pages/consult/index?type=定制�
   margin-top: 14rpx;
   color: #7ce6a6;
   font-size: 23rpx;
+}
+
+.state {
+  margin: 40rpx 24rpx;
+  padding: 40rpx;
+  border-radius: 16rpx;
+  color: $text-muted;
+  background: #fff;
+  text-align: center;
+  font-size: 26rpx;
 }
 
 .row {
