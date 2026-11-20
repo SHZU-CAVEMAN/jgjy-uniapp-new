@@ -40,9 +40,12 @@ import { productTypes } from '../../data/catalog'
 import { getProducts } from '../../api/products'
 import { createHorizontalSwipeHandlers } from '../../utils/horizontalSwipe'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '产品列表', path: '/pages/products/index' })
 
 const PAGE_SIZE = 4
 const activeType = ref('nong')

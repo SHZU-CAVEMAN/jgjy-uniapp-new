@@ -100,6 +100,9 @@ import {
 import { getMyConsultations } from "../../api/consultations";
 import { getMyComments, getMyFavorites } from "../../api/engagement";
 import { getMyTraces } from "../../api/trace";
+import { usePageShare } from "../../utils/pageShare";
+
+usePageShare({ title: "我的", path: "/pages/mine/index" });
 
 const cachedProfile = uni.getStorageSync("user-profile") || {};
 const hasAuthToken = Boolean(uni.getStorageSync("auth-token"));

@@ -53,9 +53,15 @@ import { onLoad } from "@dcloudio/uni-app";
 import InfoCard from "../../components/InfoCard.vue";
 import { getProduct } from "../../api/products";
 import { useContactBallDrag } from "../../utils/contactBallDrag";
+import { usePageShare } from "../../utils/pageShare";
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag();
+
+usePageShare(() => ({
+  title: product.value.name ? `${product.value.name} · 储酒详情` : "储酒详情",
+  path: `/pages/storage-detail/index?id=${product.value.id}`,
+}));
 
 const product = ref({
   id: "",

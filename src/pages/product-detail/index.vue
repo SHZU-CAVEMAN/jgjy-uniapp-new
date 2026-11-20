@@ -66,9 +66,16 @@ import InfoCard from "../../components/InfoCard.vue";
 import { downloadProductImage, getProduct } from "../../api/products";
 import { getMyFavorites, toggleFavorite } from "../../api/engagement";
 import { useContactBallDrag } from "../../utils/contactBallDrag";
+import { usePageShare } from "../../utils/pageShare";
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag();
+
+usePageShare(() => ({
+  title: product.value.name || "产品详情",
+  path: `/pages/product-detail/index?id=${product.value.id}`,
+  imageUrl: product.value.detailImageUrl || product.value.thumbnailUrl || "",
+}));
 
 const product = ref({
   id: "",

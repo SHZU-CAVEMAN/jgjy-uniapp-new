@@ -99,6 +99,9 @@ import { onLoad, onUnload } from "@dcloudio/uni-app";
 import { getCurrentMiniappUser } from "../../api/auth";
 import { getNeedCategories, submitConsultation } from "../../api/consultations";
 import { supportsBaseLibrary } from "../../utils/platform";
+import { usePageShare } from "../../utils/pageShare";
+
+usePageShare({ title: "发起咨询", path: "/pages/consult/index" });
 
 const demandTypes = ref([]);
 const demandIndex = ref(-1);

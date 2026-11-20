@@ -38,9 +38,12 @@ import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getMyConsultations } from '../../api/consultations'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '我的咨询', path: '/pages/my-consults/index' })
 
 const records = ref([])
 const loading = ref(true)

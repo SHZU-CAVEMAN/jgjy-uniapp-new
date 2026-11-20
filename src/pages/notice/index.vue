@@ -12,9 +12,15 @@
 <script setup>
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import { usePageShare } from '../../utils/pageShare'
 
 const title = ref('')
 const message = ref('当前功能还未上线~')
+
+usePageShare(() => ({
+  title: title.value || '温馨提示',
+  path: `/pages/notice/index?title=${encodeURIComponent(title.value)}&message=${encodeURIComponent(message.value)}`,
+}))
 
 function decode(value) {
   try {

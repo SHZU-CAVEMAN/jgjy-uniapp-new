@@ -39,9 +39,12 @@ import AsyncImage from '../../components/AsyncImage.vue'
 import SectionTitle from '../../components/SectionTitle.vue'
 import { getCompany } from '../../api/home'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '关于我们', path: '/pages/about/index' })
 
 const resourceBase = 'https://lzbjtjt.online/jgjy/resource'
 const heroImage = ref(`${resourceBase}/48dcc5dd10c3f4fe14af9ec847e4010d.jpg`)

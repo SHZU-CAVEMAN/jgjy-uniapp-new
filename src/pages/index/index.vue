@@ -58,9 +58,12 @@ import { onHide, onShow } from '@dcloudio/uni-app'
 import AsyncImage from '../../components/AsyncImage.vue'
 import SectionTitle from '../../components/SectionTitle.vue'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '泸州白酒投 · 酒谷酒业', path: '/pages/index/index' })
 
 const resourceBase = 'https://lzbjtjt.online/jgjy/resource'
 const defaultBannerImage = `${resourceBase}/6fc364b4e8082cdaea511d1d0fec14e0.jpg`

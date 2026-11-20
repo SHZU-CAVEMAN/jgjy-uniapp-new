@@ -18,12 +18,18 @@
 import { ref } from 'vue'
 import { onLoad, onReady, onUnload } from '@dcloudio/uni-app'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
 
 const videoUrl = ref('')
 const poster = ref('https://lzbjtjt.online/jgjy/resource/6fc364b4e8082cdaea511d1d0fec14e0.jpg')
+
+usePageShare(() => ({
+  title: '视频播放',
+  path: `/pages/video-player/index?src=${encodeURIComponent(videoUrl.value)}&poster=${encodeURIComponent(poster.value)}`,
+}))
 
 onLoad((options) => {
   if (options.src) videoUrl.value = decodeURIComponent(options.src)

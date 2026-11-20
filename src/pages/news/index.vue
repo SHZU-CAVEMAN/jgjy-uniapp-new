@@ -65,9 +65,12 @@ import { getNews } from "../../api/news";
 import { parseCompatibleDate } from "../../utils/platform";
 import { createHorizontalSwipeHandlers } from "../../utils/horizontalSwipe";
 import { useContactBallDrag } from "../../utils/contactBallDrag";
+import { usePageShare } from "../../utils/pageShare";
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag();
+
+usePageShare({ title: "企业动态", path: "/pages/news/index" });
 
 const newsItems = ref([]);
 const activeCategory = ref("");

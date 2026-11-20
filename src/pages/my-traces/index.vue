@@ -38,9 +38,12 @@ import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getMyTraces } from '../../api/trace'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '我的溯源', path: '/pages/my-traces/index' })
 
 const records = ref([])
 const loading = ref(true)

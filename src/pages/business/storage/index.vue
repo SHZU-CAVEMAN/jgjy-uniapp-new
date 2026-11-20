@@ -57,9 +57,12 @@
 
 <script setup>
 import { useContactBallDrag } from '../../../utils/contactBallDrag'
+import { usePageShare } from '../../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '原酒收储', path: '/pages/business/storage/index' })
 
 function startConsultation() {
   uni.navigateTo({ url: `/pages/consult/index?type=${encodeURIComponent('储酒服务')}` })

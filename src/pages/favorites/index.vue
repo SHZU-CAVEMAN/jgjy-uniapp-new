@@ -84,9 +84,12 @@ import ProductCard from "../../components/ProductCard.vue";
 import { getMyFavorites } from "../../api/engagement";
 import { createHorizontalSwipeHandlers } from "../../utils/horizontalSwipe";
 import { useContactBallDrag } from "../../utils/contactBallDrag";
+import { usePageShare } from "../../utils/pageShare";
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag();
+
+usePageShare({ title: "我的收藏", path: "/pages/favorites/index" });
 
 const activeTab = ref("products");
 const loading = ref(true);

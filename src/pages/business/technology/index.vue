@@ -69,9 +69,12 @@
 
 <script setup>
 import { useContactBallDrag } from '../../../utils/contactBallDrag'
+import { usePageShare } from '../../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '技术服务', path: '/pages/business/technology/index' })
 
 function startConsultation() {
   uni.navigateTo({ url: `/pages/consult/index?type=${encodeURIComponent('技术服务')}` })

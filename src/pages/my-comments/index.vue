@@ -34,9 +34,12 @@ import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getMyComments } from '../../api/engagement'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare({ title: '我的留言', path: '/pages/my-comments/index' })
 
 const comments = ref([])
 const loading = ref(true)

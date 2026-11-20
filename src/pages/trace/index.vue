@@ -49,7 +49,7 @@
         <view><text>897</text><text>酒体品种</text></view>
         <view><text>3</text><text>储存区域</text></view>
       </view>
-      <section-title title="罐体列表" />
+      <section-title title="储酒列表" />
       <view class="tank-list">
         <template v-if="loadingProducts">
           <view v-for="index in 3" :key="index" class="tank tank-skeleton">
@@ -89,9 +89,13 @@ import { scanTraceCode } from "../../utils/platform";
 import { getProducts } from "../../api/products";
 import { createHorizontalSwipeHandlers } from "../../utils/horizontalSwipe";
 import { useContactBallDrag } from "../../utils/contactBallDrag";
+import { usePageShare } from "../../utils/pageShare";
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag();
+
+usePageShare({ title: "溯源和储酒", path: "/pages/trace/index" });
+
 const segment = ref("trace");
 const products = ref([]);
 const loadingProducts = ref(true);
@@ -99,13 +103,21 @@ const tankSkeletonRows = [
   { width: "70%", height: "28rpx" },
   { width: "48%", height: "22rpx" },
 ];
-const storageProducts = computed(() => products.value.slice(0, 6));
+const storageProducts = computed(() => products.value);
 
 async function loadProducts() {
   loadingProducts.value = true;
   try {
-    const data = await getProducts({ page: 1, pageSize: 100 });
-    products.value = data.items;
+    const items = [];
+    let page = 1;
+    let pages = 1;
+    do {
+      const data = await getProducts({ page, pageSize: 100 });
+      items.push(...data.items);
+      pages = data.pages || 1;
+      page += 1;
+    } while (page <= pages);
+    products.value = items;
   } catch {
     products.value = [];
   } finally {

@@ -40,9 +40,15 @@ import { onLoad } from '@dcloudio/uni-app'
 import InfoCard from '../../components/InfoCard.vue'
 import { getTraceReport } from '../../api/trace'
 import { useContactBallDrag } from '../../utils/contactBallDrag'
+import { usePageShare } from '../../utils/pageShare'
 
 const { contactBallStyle, contactBallDragged, onContactBallTouchStart, onContactBallTouchMove, onContactBallTouchEnd } =
   useContactBallDrag()
+
+usePageShare(() => ({
+  title: traceCode.value ? `溯源报告 ${traceCode.value}` : '溯源报告',
+  path: `/pages/trace-report/index?code=${encodeURIComponent(traceCode.value)}`,
+}))
 
 const traceCode = ref('')
 const report = ref(null)
